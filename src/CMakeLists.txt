@@ -26,7 +26,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-add_library(openthread-kw41z
+add_library(openthread-rt1060
     alarm.c
     api_lock.c
     diag.c
@@ -42,29 +42,29 @@ add_library(openthread-kw41z
 )
 
 set_target_properties(
-    openthread-kw41z
+    openthread-rt1060
     PROPERTIES
         C_STANDARD 99
         CXX_STANDARD 11
 )
 
-target_link_libraries(openthread-kw41z
+target_link_libraries(openthread-rt1060
     PRIVATE
-        nxp-kw41z-driver
+        nxp-rt1060-driver
         ot-config
-        openthread-spinel-rcp
         openthread-hdlc
+        openthread-spinel-rcp
     PUBLIC
         -T${PROJECT_SOURCE_DIR}/src/RT1060.ld
         -Wl,--gc-sections -Wl,-Map=$<TARGET_PROPERTY:NAME>.map
 )
 
-target_compile_definitions(openthread-kw41z
+target_compile_definitions(openthread-rt1060
     PUBLIC
         ${OT_PLATFORM_DEFINES}
 )
 
-target_compile_options(openthread-kw41z
+target_compile_options(openthread-rt1060
     PRIVATE
         ${OT_CFLAGS}
         -Wno-unknown-pragmas
@@ -74,7 +74,7 @@ target_compile_options(openthread-kw41z
         -Wno-empty-body
 )
 
-target_include_directories(openthread-kw41z
+target_include_directories(openthread-rt1060
     PRIVATE
         ${OT_PUBLIC_INCLUDES}
         ${PROJECT_SOURCE_DIR}/openthread/examples/platforms

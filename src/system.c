@@ -84,6 +84,13 @@ int otSysMainloopPoll(otSysMainloopContext *aMainloop)
    return 0;
 }
 
+bool otSysPseudoResetWasRequested(void)
+{
+    /* TODO */
+    
+    return false;
+}
+
 void otSysMainloopProcess(otInstance *aInstance, const otSysMainloopContext *aMainloop)
 {
     rt1060UartProcess();

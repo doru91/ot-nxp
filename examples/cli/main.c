@@ -28,22 +28,85 @@
 
 /**
  * @file
- *   This file implements an entropy source based on TODO.
+ * This file implements an example OpenThread CLI application.
+ *
+ * This file is just for example, but not for production.
  *
  */
 
-#include <openthread/platform/entropy.h>
+/* TODO: add required SDK files + CMakes rules */
+//#include <freertos/FreeRTOS.h>
+//#include <freertos/task.h>
 
-#include <utils/code_utils.h>
+#include <openthread/cli.h>
+#include <openthread/tasklet.h>
+#include <openthread/platform/toolchain.h>
+#include <assert.h>
 
-void rt1060RandomInit(void)
+#include "platform-rt1060.h"
+
+
+static void run_cli(void *aContext)
 {
+    OT_UNUSED_VARIABLE(aContext);
+
+pseudo_reset:
+
+    otSysInit(0, NULL);
+
+    otSysApiLock();
+
+    size_t instanceSize = 0;
+
+    // Get the instance size.
+    otInstanceInit(NULL, &instanceSize);
+    void *instanceBuffer = malloc(instanceSize);
+
+    otInstance *instance = otInstanceInit(instanceBuffer, &instanceSize);
+
+    assert(instance != NULL);
+
+    otCliUartInit(instance);
+    otSysApiUnlock();
+
+    while (!otSysPseudoResetWasRequested())
+    {
+        otSysMainloopContext mainloop;
+
+        otSysMainloopInit(&mainloop);
+
+        otSysApiLock();
+        otTaskletsProcess(instance);
+        otSysMainloopUpdate(instance, &mainloop);
+        otSysApiUnlock();
+
+        if (otSysMainloopPoll(&mainloop) >= 0)
+        {
+            otSysApiLock();
+            otSysMainloopProcess(instance, &mainloop);
+            otSysApiUnlock();
+        }
+        else
+        {
+
+            abort();
+        }
+    }
+
+    otInstanceFinalize(instance);
+    otSysDeinit();
+
+    goto pseudo_reset;
+ 
     /* TODO */
+    //vTaskDelete(NULL);
 }
 
-otError otPlatEntropyGet(uint8_t *aOutput, uint16_t aOutputLength)
+int main(int argc, char* argv[])
 {
-    /* TODO */
+    /* TODO: add required SDK files + CMakes rules */
+    //xTaskCreate(run_cli, "cli", 10 * 1024, NULL, 5, NULL);
     
-    return OT_ERROR_NONE;   
+    /* add this call just for linking check */
+    run_cli(NULL);
 }

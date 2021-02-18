@@ -27,9 +27,9 @@
 #
 
 cmake_minimum_required(VERSION 3.10.2)
-project(ot-kw41z VERSION 0.2.0)
+project(ot-rt1060 VERSION 0.2.0)
 
-set(OT_PLATFORM_LIB "openthread-kw41z")
+set(OT_PLATFORM_LIB "openthread-rt1060")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
@@ -50,3 +50,23 @@ target_include_directories(ot-config INTERFACE
 
 add_subdirectory(src)
 add_subdirectory(third_party)
+
+add_executable(ot-cli
+    ${PROJECT_SOURCE_DIR}/examples/cli/main.c
+)
+
+target_include_directories(ot-cli PRIVATE ${COMMON_INCLUDES})
+
+target_link_libraries(ot-cli PRIVATE
+    openthread-cli-ftd
+    ${OT_PLATFORM_LIB}
+    openthread-ftd
+    ${OT_PLATFORM_LIB}
+    ${OT_MBEDTLS}
+    ot-config
+    -Wl,--start-group mbedcrypto openthread-rt1060 -Wl,--end-group
+)
+
+install(TARGETS ot-cli
+    DESTINATION bin)
+
