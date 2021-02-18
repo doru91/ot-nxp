@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -26,59 +26,29 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- *   This file includes the platform-specific initializers.
- *
+#include "platform-rt1060.h"
+
+/* TODO:
+ * - Locking used in cli.c;
+ * - Internal helper functions, check if needed otherwise delete them.
  */
 
-#ifndef PLATFORM_KW41Z_H_
-#define PLATFORM_KW41Z_H_
+void otSysApiLock(void)
+{
+    /* TODO */
+}
 
-#include <openthread-core-config.h>
-#include <openthread/config.h>
+void otSysApiUnlock(void)
+{
+    /* TODO */
+}
 
-#include <stdint.h>
+void rt1060ApiLockInit(void)
+{
+    /* TODO */
+}
 
-#include <openthread/instance.h>
-
-/**
- * This function initializes the alarm service used by OpenThread.
- *
- */
-void kw41zAlarmInit(void);
-
-/**
- * This function performs alarm driver processing.
- *
- * @param[in]  aInstance  The OpenThread instance structure.
- *
- */
-void kw41zAlarmProcess(otInstance *aInstance);
-
-/**
- * This function initializes the radio service used by OpenThread.
- *
- */
-void kw41zRadioInit(void);
-
-/**
- * This function performs radio driver processing.
- *
- * @param[in]  aInstance  The OpenThread instance structure.
- *
- */
-void kw41zRadioProcess(otInstance *aInstance);
-
-/**
- * This function initializes the random number service used by OpenThread.
- *
- */
-void kw41zRandomInit(void);
-
-/**
- * This function performs UART driver processing.
- *
- */
-void kw41zUartProcess(void);
-#endif // PLATFORM_KW41Z_H_
+void rt1060ApiLockDeinit(void)
+{
+    /* TODO */
+}

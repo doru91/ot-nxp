@@ -28,12 +28,15 @@
 
 add_library(openthread-kw41z
     alarm.c
+    api_lock.c
     diag.c
     entropy.c
     flash.c
     logging.c
+    memory.c
     misc.c
-    radio.c
+    radio.cpp
+    spinel_hdlc.cpp
     system.c
     uart.c
 )
@@ -49,8 +52,10 @@ target_link_libraries(openthread-kw41z
     PRIVATE
         nxp-kw41z-driver
         ot-config
+        openthread-spinel-rcp
+        openthread-hdlc
     PUBLIC
-        -T${PROJECT_SOURCE_DIR}/src/MKW41Z512xxx4.ld
+        -T${PROJECT_SOURCE_DIR}/src/RT1060.ld
         -Wl,--gc-sections -Wl,-Map=$<TARGET_PROPERTY:NAME>.map
 )
 
@@ -73,4 +78,5 @@ target_include_directories(openthread-kw41z
     PRIVATE
         ${OT_PUBLIC_INCLUDES}
         ${PROJECT_SOURCE_DIR}/openthread/examples/platforms
+        ${PROJECT_SOURCE_DIR}/openthread/third_party/mbedtls/repo/include
 )

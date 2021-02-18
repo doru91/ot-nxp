@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 
 /**
  * @file
- *   GCC linker script for MKW41Z512xxx4.
+ *   TODO: Add linker instructions for RT1060
  */
  
 GROUP (

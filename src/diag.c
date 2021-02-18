@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,6 @@
  *
  */
 
-#include "fsl_device_registers.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <openthread/config.h>
 #include <openthread/platform/alarm-milli.h>
 #include <openthread/platform/radio.h>
@@ -62,11 +57,15 @@ bool otPlatDiagModeGet()
 void otPlatDiagChannelSet(uint8_t aChannel)
 {
     OT_UNUSED_VARIABLE(aChannel);
+    
+    /* TODO */
 }
 
 void otPlatDiagTxPowerSet(int8_t aTxPower)
 {
     OT_UNUSED_VARIABLE(aTxPower);
+    
+    /* TODO */
 }
 
 void otPlatDiagRadioReceived(otInstance *aInstance, otRadioFrame *aFrame, otError aError)
@@ -74,11 +73,15 @@ void otPlatDiagRadioReceived(otInstance *aInstance, otRadioFrame *aFrame, otErro
     OT_UNUSED_VARIABLE(aInstance);
     OT_UNUSED_VARIABLE(aFrame);
     OT_UNUSED_VARIABLE(aError);
+    
+    /* TODO */
 }
 
 void otPlatDiagAlarmCallback(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
+    
+    /* TODO */
 }
 
 #endif // OPENTHREAD_CONFIG_DIAG_ENABLE

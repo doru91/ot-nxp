@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 
 /**
  * @file
- *   This file implements an entropy source based on TRNG.
+ *   This file implements an entropy source based on TODO.
  *
  */
 
@@ -40,35 +40,14 @@
 #include <stdlib.h>
 #include <utils/code_utils.h>
 
-void kw41zRandomInit(void)
+void rt1060RandomInit(void)
 {
-    trng_config_t config;
-    uint32_t      seed;
-
-    TRNG_GetDefaultConfig(&config);
-    config.frequencyCountLimit.minimum = 0x00000100;
-    config.frequencyCountLimit.maximum = 0x000F0000;
-    config.ringOscDiv                  = kTRNG_RingOscDiv0;
-    config.entropyDelay                = 1200;
-
-    otEXPECT(TRNG_Init(TRNG0, &config) == kStatus_Success);
-
-    otEXPECT(TRNG_GetRandomData(TRNG0, &seed, sizeof(seed)) == kStatus_Success);
-
-    srand(seed);
-
-exit:
-    return;
+    /* TODO */
 }
 
 otError otPlatEntropyGet(uint8_t *aOutput, uint16_t aOutputLength)
 {
-    otError status = OT_ERROR_NONE;
-
-    otEXPECT_ACTION((aOutput != NULL), status = OT_ERROR_INVALID_ARGS);
-
-    otEXPECT_ACTION(TRNG_GetRandomData(TRNG0, aOutput, aOutputLength) == kStatus_Success, status = OT_ERROR_FAILED);
-
-exit:
-    return status;
+    /* TODO */
+    
+    return OT_ERROR_NONE;   
 }

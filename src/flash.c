@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -26,67 +26,117 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdint.h>
-
 #include <openthread/instance.h>
+#include <openthread/platform/flash.h>
+#include <openthread/platform/settings.h>
 
-#include "fsl_device_registers.h"
-#include "fsl_flash.h"
-
-#define FLASH_BASE_ADDRESS 0x40000
-#define FLASH_PAGE_SIZE 0x800
-#define FLASH_PAGE_NUM 2
-#define FLASH_SWAP_SIZE (FLASH_PAGE_SIZE * (FLASH_PAGE_NUM / 2))
-
-static flash_config_t sFlashConfig;
-
-static uint32_t mapAddress(uint8_t aSwapIndex, uint32_t aOffset)
+void otPlatSettingsInit(otInstance *aInstance)
 {
-    uint32_t address = FLASH_BASE_ADDRESS + aOffset;
+    OT_UNUSED_VARIABLE(aInstance);
+    
+    /* TODO */
+}
 
-    if (aSwapIndex)
-    {
-        address += FLASH_SWAP_SIZE;
-    }
+void otPlatSettingsDeinit(otInstance *aInstance)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    
+    /* TODO */
+}
 
-    return address;
+otError otPlatSettingsGet(otInstance *aInstance, uint16_t aKey, int aIndex, uint8_t *aValue, uint16_t *aValueLength)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aKey);
+    OT_UNUSED_VARIABLE(aIndex);
+    OT_UNUSED_VARIABLE(aValue);
+    OT_UNUSED_VARIABLE(aValueLength);
+    
+    /* TODO */
+    
+    return OT_ERROR_NOT_FOUND;
+}
+
+otError otPlatSettingsSet(otInstance *aInstance, uint16_t aKey, const uint8_t *aValue, uint16_t aValueLength)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aKey);
+    OT_UNUSED_VARIABLE(aValue);
+    OT_UNUSED_VARIABLE(aValueLength);
+    
+    /* TODO */
+    
+    return OT_ERROR_NONE;
+}
+
+otError otPlatSettingsAdd(otInstance *aInstance, uint16_t aKey, const uint8_t *aValue, uint16_t aValueLength)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aKey);
+    OT_UNUSED_VARIABLE(aValue);
+    OT_UNUSED_VARIABLE(aValueLength);
+    
+    /* TODO */
+    
+    return OT_ERROR_NONE;
+}
+
+otError otPlatSettingsDelete(otInstance *aInstance, uint16_t aKey, int aIndex)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aKey);
+    OT_UNUSED_VARIABLE(aIndex);
+    
+    /* TODO */
+    return OT_ERROR_NONE;
 }
 
 void otPlatFlashInit(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-
-    FLASH_Init(&sFlashConfig);
+    
+    /* TODO */
 }
 
 uint32_t otPlatFlashGetSwapSize(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
+    
+    /* TODO */
 
-    return FLASH_SWAP_SIZE;
+    return 0;
 }
 
-void otPlatFlashErase(otInstance *aInstance, uint32_t aSwapIndex)
+void otPlatFlashErase(otInstance *aInstance, uint8_t aSwapIndex)
 {
     OT_UNUSED_VARIABLE(aInstance);
-
-    FLASH_Erase(&sFlashConfig, mapAddress(aSwapIndex, 0), FSL_FEATURE_FLASH_PFLASH_BLOCK_SECTOR_SIZE,
-                kFLASH_ApiEraseKey);
-    while ((FTFA->FSTAT & FTFA_FSTAT_CCIF_MASK) == 0)
-    {
-    }
-}
-
-void otPlatFlashWrite(otInstance *aInstance, uint8_t aSwapIndex, uint32_t aOffset, const void *aData, uint32_t aSize)
-{
-    OT_UNUSED_VARIABLE(aInstance);
-
-    FLASH_Program(&sFlashConfig, mapAddress(aSwapIndex, aOffset), (uint32_t *)aData, aSize);
+    OT_UNUSED_VARIABLE(aSwapIndex);
+    
+    /* TODO */
 }
 
 void otPlatFlashRead(otInstance *aInstance, uint8_t aSwapIndex, uint32_t aOffset, void *aData, uint32_t aSize)
 {
     OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aSwapIndex);
+    OT_UNUSED_VARIABLE(aOffset);
+    OT_UNUSED_VARIABLE(aData);
+    OT_UNUSED_VARIABLE(aSize);
+    
+    /* TODO */
+    
+    return;
+}
 
-    memcpy(aData, (void *)mapAddress(aSwapIndex, aOffset), aSize);
+void otPlatFlashWrite(otInstance *aInstance, uint8_t aSwapIndex, uint32_t aOffset, const void *aData, uint32_t aSize)
+{
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aSwapIndex);
+    OT_UNUSED_VARIABLE(aOffset);
+    OT_UNUSED_VARIABLE(aData);
+    OT_UNUSED_VARIABLE(aSize);
+    
+    /* TODO */
+    
+    return;
 }

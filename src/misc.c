@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2017, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -27,64 +27,27 @@
  */
 
 #include "openthread/platform/misc.h"
-#include "fsl_device_registers.h"
-#include <stdint.h>
 
 void otPlatReset(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-
-    NVIC_SystemReset();
-
-    while (1)
-    {
-    }
+    
+    /* TODO */
 }
 
 otPlatResetReason otPlatGetResetReason(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-
-    otPlatResetReason reason;
-
-    if (RCM->SRS0 & RCM_SRS0_POR_MASK)
-    {
-        reason = OT_PLAT_RESET_REASON_POWER_ON;
-    }
-    else if (RCM->SRS1 & RCM_SRS1_SW_MASK)
-    {
-        reason = OT_PLAT_RESET_REASON_SOFTWARE;
-    }
-    else if (RCM->SRS0 & RCM_SRS0_WDOG_MASK)
-    {
-        reason = OT_PLAT_RESET_REASON_WATCHDOG;
-    }
-    else if (RCM->SRS0 & RCM_SRS0_PIN_MASK)
-    {
-        reason = OT_PLAT_RESET_REASON_EXTERNAL;
-    }
-    else if ((RCM->SRS0 & RCM_SRS0_LOC_MASK) || (RCM->SRS1 & RCM_SRS1_SACKERR_MASK) ||
-             (RCM->SRS1 & RCM_SRS1_LOCKUP_MASK))
-    {
-        reason = OT_PLAT_RESET_REASON_FAULT;
-    }
-    else if ((RCM->SRS0 & RCM_SRS0_WAKEUP_MASK) || (RCM->SRS0 & RCM_SRS0_LVD_MASK) ||
-             (RCM->SRS1 & RCM_SRS1_MDM_AP_MASK))
-    {
-        reason = OT_PLAT_RESET_REASON_ASSERT;
-    }
-    else
-    {
-        reason = OT_PLAT_RESET_REASON_OTHER;
-    }
-
-    return reason;
+    
+    /* TODO */
 }
 
 void otPlatAssertFail(const char *aFilename, int aLineNumber)
 {
     OT_UNUSED_VARIABLE(aFilename);
     OT_UNUSED_VARIABLE(aLineNumber);
+    
+    /* TODO */
 }
 
 void otPlatWakeHost(void)

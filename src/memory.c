@@ -26,67 +26,16 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file
- *   This file includes the platform-specific initializers.
- *
- */
 #include "platform-rt1060.h"
 
-#include <openthread/tasklet.h>
-#include <openthread/platform/alarm-milli.h>
-#include <openthread/platform/time.h>
-
-void otSysInit(int argc, char *argv[])
+void *otPlatCAlloc(size_t aNum, size_t aSize)
 {
-    OT_UNUSED_VARIABLE(argc);
-    OT_UNUSED_VARIABLE(argv);
-
-    rt1060ApiLockInit();
-    rt1060UartInit();
-    rt1060RadioInit();
+    /* TODO: add RT memory alloc function */
     
-    /* TODO: do we need other RT initializations */
+    return NULL;
 }
 
-void otSysDeinit(void)
+void otPlatFree(void *aPtr)
 {
-    rt1060RadioDeinit();
-    rt1060UartDeinit();
-    rt1060ApiLockDeinit();
-}
-
-void otSysMainloopInit(otSysMainloopContext *aMainloop)
-{
-    OT_UNUSED_VARIABLE(aMainloop);
-    
-    /* TODO: add aMainLoop specific initializations */
-}
-
-void otSysMainloopUpdate(otInstance *aInstance, otSysMainloopContext *aMainloop)
-{
-    rt1060AlarmUpdate(aMainloop);
-    rt1060UartUpdate(aMainloop);
-    rt1060RadioUpdate(aMainloop);
-
-    if (otTaskletsArePending(aInstance))
-    {
-        /* TODO: aMainloop updates? */
-    }
-}
-
-int otSysMainloopPoll(otSysMainloopContext *aMainloop)
-{
-    OT_UNUSED_VARIABLE(aMainloop);
-    
-   /* TODO */
-   
-   return 0;
-}
-
-void otSysMainloopProcess(otInstance *aInstance, const otSysMainloopContext *aMainloop)
-{
-    rt1060UartProcess();
-    rt1060RadioProcess(aInstance);
-    rt1060AlarmProcess(aInstance);
+    /* TODO: add RT memory free function */
 }

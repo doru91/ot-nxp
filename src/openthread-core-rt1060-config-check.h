@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019, The OpenThread Authors.
+ *  Copyright (c) 2021, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OPENTHREAD_CORE_KW41Z_CONFIG_CHECK_H_
-#define OPENTHREAD_CORE_KW41Z_CONFIG_CHECK_H_
+#ifndef OPENTHREAD_CORE_RT1060_CONFIG_CHECK_H_
+#define OPENTHREAD_CORE_RT1060_CONFIG_CHECK_H_
 
-#if OPENTHREAD_CONFIG_RADIO_915MHZ_OQPSK_SUPPORT
-#error "Platform kw41z doesn't support configuration option: OPENTHREAD_CONFIG_RADIO_915MHZ_OQPSK_SUPPORT"
-#endif
+/* TODO */
 
-#endif /* OPENTHREAD_CORE_KW41Z_CONFIG_CHECK_H_ */
+#endif /* OPENTHREAD_CORE_RT1060_CONFIG_CHECK_H_ */
