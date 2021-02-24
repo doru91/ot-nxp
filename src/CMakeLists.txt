@@ -54,6 +54,7 @@ target_link_libraries(openthread-rt1060
         ot-config
         openthread-hdlc
         openthread-spinel-rcp
+        openthread-platform
     PUBLIC
         -T${PROJECT_SOURCE_DIR}/src/RT1060.ld
         -Wl,--gc-sections -Wl,-Map=$<TARGET_PROPERTY:NAME>.map
