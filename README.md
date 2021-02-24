@@ -1,4 +1,4 @@
-# OpenThread on i.MX RT1060 Example
+# OpenThread on NXP Platform
 
 TODO
 

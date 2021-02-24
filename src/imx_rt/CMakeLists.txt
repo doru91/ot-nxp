@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-#  Copyright (c) 2020, The OpenThread Authors.
+#  Copyright (c) 2021, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -27,43 +26,6 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-set -euxo pipefail
-
-OT_CMAKE_NINJA_TARGET=${OT_CMAKE_NINJA_TARGET:-}
-
-readonly OT_SRCDIR="$(pwd)"
-readonly OT_OPTIONS=(
-    "-DCMAKE_TOOLCHAIN_FILE=src/arm-none-eabi.cmake"
-    "-DCMAKE_BUILD_TYPE=MinSizeRel"
-    "-DOT_PLATFORM=external"
-    "-DOT_SLAAC=ON"
-)
-
-build()
-{
-    local builddir="${OT_CMAKE_BUILD_DIR:-build}"
-
-    mkdir -p "${builddir}"
-    cd "${builddir}"
-
-    cmake -GNinja -DOT_APP_NCP=OFF -DOT_COMPILE_WARNING_AS_ERROR=ON "$@" "${OT_SRCDIR}"
-
-    if [[ -n ${OT_CMAKE_NINJA_TARGET[*]} ]]; then
-        ninja "${OT_CMAKE_NINJA_TARGET[@]}"
-    else
-        ninja
-    fi
-
-    cd "${OT_SRCDIR}"
-}
-
-main()
-{
-    local options=("${OT_OPTIONS[@]}")
-
-    options+=("$@")
-
-    build "${options[@]}"
-}
-
-main "$@"
+if(OT_BUILD_RT1060)
+    add_subdirectory(rt1060)
+endif()

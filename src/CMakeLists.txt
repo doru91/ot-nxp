@@ -26,58 +26,6 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-add_library(openthread-rt1060
-    alarm.c
-    api_lock.c
-    diag.c
-    entropy.c
-    flash.c
-    logging.c
-    memory.c
-    misc.c
-    radio.cpp
-    spinel_hdlc.cpp
-    system.c
-    uart.c
-)
-
-set_target_properties(
-    openthread-rt1060
-    PROPERTIES
-        C_STANDARD 99
-        CXX_STANDARD 11
-)
-
-target_link_libraries(openthread-rt1060
-    PRIVATE
-        nxp-rt1060-driver
-        ot-config
-        openthread-hdlc
-        openthread-spinel-rcp
-        openthread-platform
-    PUBLIC
-        -T${PROJECT_SOURCE_DIR}/src/RT1060.ld
-        -Wl,--gc-sections -Wl,-Map=$<TARGET_PROPERTY:NAME>.map
-)
-
-target_compile_definitions(openthread-rt1060
-    PUBLIC
-        ${OT_PLATFORM_DEFINES}
-)
-
-target_compile_options(openthread-rt1060
-    PRIVATE
-        ${OT_CFLAGS}
-        -Wno-unknown-pragmas
-        -Wno-sign-compare
-        -Wno-unused-function
-        -Wno-unused-parameter
-        -Wno-empty-body
-)
-
-target_include_directories(openthread-rt1060
-    PRIVATE
-        ${OT_PUBLIC_INCLUDES}
-        ${PROJECT_SOURCE_DIR}/openthread/examples/platforms
-        ${PROJECT_SOURCE_DIR}/openthread/third_party/mbedtls/repo/include
-)
+if(OT_BUILD_RT)
+    add_subdirectory(imx_rt)
+endif()

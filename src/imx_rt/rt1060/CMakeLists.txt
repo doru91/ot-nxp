@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2020, The OpenThread Authors.
+#  Copyright (c) 2021, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,16 +26,46 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-add_library(nxp-rt1060-driver
-    RT1060_SDK/TODO.c
+add_library(openthread-rt1060
+    alarm.c
+    api_lock.c
+    diag.c
+    entropy.c
+    flash.c
+    logging.c
+    memory.c
+    misc.c
+    radio.cpp
+    spinel_hdlc.cpp
+    system.c
+    uart.c
 )
 
-target_compile_definitions(nxp-rt1060-driver
+set_target_properties(
+    openthread-rt1060
+    PROPERTIES
+        C_STANDARD 99
+        CXX_STANDARD 11
+)
+
+target_link_libraries(openthread-rt1060
+    PRIVATE
+        nxp-rt1060-driver
+        ot-config
+        openthread-hdlc
+        openthread-spinel-rcp
+        openthread-platform
+    PUBLIC
+        -T${PROJECT_SOURCE_DIR}/src/imx_rt/rt1060/RT1060.ld
+        -Wl,--gc-sections -Wl,-Map=$<TARGET_PROPERTY:NAME>.map
+)
+
+target_compile_definitions(openthread-rt1060
     PUBLIC
         ${OT_PLATFORM_DEFINES}
 )
 
-target_compile_options(nxp-rt1060-driver
+target_compile_options(openthread-rt1060
     PRIVATE
         ${OT_CFLAGS}
         -Wno-unknown-pragmas
@@ -45,8 +75,9 @@ target_compile_options(nxp-rt1060-driver
         -Wno-empty-body
 )
 
-target_include_directories(nxp-rt1060-driver
-    PUBLIC
+target_include_directories(openthread-rt1060
+    PRIVATE
+        ${OT_PUBLIC_INCLUDES}
+        ${PROJECT_SOURCE_DIR}/openthread/examples/platforms
+        ${PROJECT_SOURCE_DIR}/openthread/third_party/mbedtls/repo/include
 )
-
-target_link_libraries(nxp-rt1060-driver PRIVATE ot-config)

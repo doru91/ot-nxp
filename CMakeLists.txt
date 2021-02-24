@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2020, The OpenThread Authors.
+#  Copyright (c) 2021, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,41 @@
 #
 
 cmake_minimum_required(VERSION 3.10.2)
-project(ot-rt1060 VERSION 0.2.0)
+project(ot-nxp VERSION 0.2.0)
 
-set(OT_PLATFORM_LIB "openthread-rt1060")
+if (OT_BUILD_RT)
+    if (OT_BUILD_RT1060)
+        if (DEFINED ENV{RT1060_SDK_ROOT})
+            MESSAGE(STATUS "RT1060_SDK_ROOT env seen: --[$ENV{RT1060_SDK_ROOT}]--")
+        else()
+            MESSAGE(STATUS "Please set RT1060_SDK_ROOT environmental variable and retry!\n\n")
+            return()
+        endif()
+        set(PLAT_LIB "openthread-rt1060")
+        set(CONFIG_FILE "\"openthread-core-rt1060-config.h\"")
+        set(CORE_CONFIG_FILE "\"openthread-core-rt1060-config.h\"")
+        set(CORE_CONFIG_CHECK "\"openthread-core-rt1060-config-check.h\"")
+        set(PLATFORM rt1060)
+    endif()
+endif()
+
+set(OT_PLATFORM_LIB ${PLAT_LIB})
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+set(RUNTIME_OUTPUT_CMAKE_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 add_subdirectory(openthread)
 
 target_compile_definitions(ot-config INTERFACE
-    OPENTHREAD_CONFIG_FILE="openthread-core-rt1060-config.h"
-    OPENTHREAD_PROJECT_CORE_CONFIG_FILE="openthread-core-rt1060-config.h"
-    OPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE="openthread-core-rt1060-config-check.h"
+    OPENTHREAD_CONFIG_FILE=${CONFIG_FILE}
+    OPENTHREAD_PROJECT_CORE_CONFIG_FILE=${CORE_CONFIG_FILE}
+    OPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE=${CORE_CONFIG_CHECK}
     OPENTHREAD_CONFIG_NCP_UART_ENABLE=1
 )
 
 target_include_directories(ot-config INTERFACE
-    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/imx_rt/${PLATFORM}
 )
 
 add_subdirectory(src)
@@ -64,9 +80,8 @@ target_link_libraries(ot-cli PRIVATE
     ${OT_PLATFORM_LIB}
     ${OT_MBEDTLS}
     ot-config
-    -Wl,--start-group mbedcrypto openthread-rt1060 -Wl,--end-group
+    -Wl,--start-group mbedcrypto openthread-${PLATFORM} -Wl,--end-group
 )
 
 install(TARGETS ot-cli
     DESTINATION bin)
-

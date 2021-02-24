@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2021, The OpenThread Authors.
+#  Copyright (c) 2020, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,27 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-if(OT_BUILD_RT1060)
-    add_subdirectory(rt1060_sdk)
-endif()
+add_library(nxp-rt1060-driver
+    $ENV{RT1060_SDK_ROOT}/TODO.c
+)
+
+target_compile_definitions(nxp-rt1060-driver
+    PUBLIC
+        ${OT_PLATFORM_DEFINES}
+)
+
+target_compile_options(nxp-rt1060-driver
+    PRIVATE
+        ${OT_CFLAGS}
+        -Wno-unknown-pragmas
+        -Wno-sign-compare
+        -Wno-unused-function
+        -Wno-unused-parameter
+        -Wno-empty-body
+)
+
+target_include_directories(nxp-rt1060-driver
+    PUBLIC
+)
+
+target_link_libraries(nxp-rt1060-driver PRIVATE ot-config)
