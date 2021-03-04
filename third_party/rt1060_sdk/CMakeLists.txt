@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2020, The OpenThread Authors.
+#  Copyright (c) 2021, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,15 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-add_library(nxp-rt1060-driver
-    $ENV{RT1060_SDK_ROOT}/TODO.c
-)
+if (SDK_RELEASE)
+    add_library(nxp-rt1060-driver
+        $ENV{NXP_RT1060_SDK_ROOT}/TODO.c
+    )
+    else()
+    add_library(nxp-rt1060-driver
+        $ENV{NXP_RT1060_SDK_ROOT}/path_from_repo/TODO.c
+    )
+endif()
 
 target_compile_definitions(nxp-rt1060-driver
     PUBLIC

@@ -27,7 +27,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-set -euxo pipefail
+set -exo pipefail
 
 OT_CMAKE_NINJA_TARGET=${OT_CMAKE_NINJA_TARGET:-}
 
@@ -46,7 +46,7 @@ build()
     mkdir -p "${builddir}"
     cd "${builddir}"
 
-    cmake -GNinja -DOT_APP_NCP=OFF -DOT_BUILD_RT=ON -DOT_BUILD_RT1060=ON -DOT_COMPILE_WARNING_AS_ERROR=ON "$@" "${OT_SRCDIR}"
+    cmake -GNinja -DOT_APP_NCP=OFF -DOT_BUILD_RT=ON -DOT_BUILD_RT1060=ON -DOT_COMPILE_WARNING_AS_ERROR=ON $@ "${OT_SRCDIR}"
 
     if [[ -n ${OT_CMAKE_NINJA_TARGET[*]} ]]; then
         ninja "${OT_CMAKE_NINJA_TARGET[@]}"
@@ -59,9 +59,38 @@ build()
 
 main()
 {
+
+    # check if environmental variable NXP_RT1060_SDK_ROOT is set
+    #     if not, then use "../../../" as a possible path
+    # then  check if NXP_RT1060_SDK_ROOT contains a valid SDK
+    #     if SW-Content-Register.txt is found
+    #         then NXP_RT1060_SDK_ROOT points to a released SDK
+    #     else if .gitignore is found
+    #         then NXP_RT1060_SDK_ROOT points to a cloned repository
+  
+    if [ -z $NXP_RT1060_SDK_ROOT ];
+    then
+        NXP_RT1060_SDK_ROOT="../../../"
+    fi
+
+    if [ -f $NXP_RT1060_SDK_ROOT/SW-Content-Register.txt ]
+    then
+        SDK_RELEASE=ON
+    elif [ -f $NXP_RT1060_SDK_ROOT/.gitmodules ]
+    then
+        SDK_RELEASE=OFF
+    else
+	echo "Could not found a valid SDK package!"
+	return
+    fi
+
+    echo "NXP_RT1060_SDK_ROOT set to " $NXP_RT1060_SDK_ROOT
+
     local options=("${OT_OPTIONS[@]}")
 
     options+=("$@")
+
+    options+=" -DSDK_RELEASE=$SDK_RELEASE"
 
     build "${options[@]}"
 }
