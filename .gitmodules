@@ -1,4 +1,4 @@
 
 [submodule "openthread"]
 	path = openthread
-	url = ssh://git@bitbucket.sw.nxp.com/connint/openthread.git
+	url = https://github.com/openthread/openthread.git
