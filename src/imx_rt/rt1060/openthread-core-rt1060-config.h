@@ -165,7 +165,7 @@
  * Define to 1 to enable multiple instance support.
  *
  */
-#define OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE 1
+#define OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE 0
 
 /**
  * @def OPENTHREAD_CONFIG_NCP_SPI_ENABLE
