@@ -41,7 +41,7 @@ readonly OT_OPTIONS=(
 
 build()
 {
-    local builddir="${OT_CMAKE_BUILD_DIR:-build}"
+    local builddir="${OT_CMAKE_BUILD_DIR:-build_rt1060}"
 
     mkdir -p "${builddir}"
     cd "${builddir}"
@@ -67,21 +67,18 @@ main()
     #         then NXP_RT1060_SDK_ROOT points to a released SDK
     #     else if .gitignore is found
     #         then NXP_RT1060_SDK_ROOT points to a cloned repository
-  
-    if [ -z $NXP_RT1060_SDK_ROOT ];
-    then
+
+    if [ -z $NXP_RT1060_SDK_ROOT ]; then
         NXP_RT1060_SDK_ROOT="../../../"
     fi
 
-    if [ -f $NXP_RT1060_SDK_ROOT/SW-Content-Register.txt ]
-    then
+    if [ -f $NXP_RT1060_SDK_ROOT/SW-Content-Register.txt ]; then
         SDK_RELEASE=ON
-    elif [ -f $NXP_RT1060_SDK_ROOT/.gitmodules ]
-    then
+    elif [ -f $NXP_RT1060_SDK_ROOT/.gitmodules ]; then
         SDK_RELEASE=OFF
     else
-	echo "Could not found a valid SDK package!"
-	return
+        echo "Could not found a valid SDK package!"
+        return
     fi
 
     echo "NXP_RT1060_SDK_ROOT set to " $NXP_RT1060_SDK_ROOT

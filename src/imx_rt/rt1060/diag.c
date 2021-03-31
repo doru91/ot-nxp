@@ -57,14 +57,14 @@ bool otPlatDiagModeGet()
 void otPlatDiagChannelSet(uint8_t aChannel)
 {
     OT_UNUSED_VARIABLE(aChannel);
-    
+
     /* TODO */
 }
 
 void otPlatDiagTxPowerSet(int8_t aTxPower)
 {
     OT_UNUSED_VARIABLE(aTxPower);
-    
+
     /* TODO */
 }
 
@@ -73,14 +73,14 @@ void otPlatDiagRadioReceived(otInstance *aInstance, otRadioFrame *aFrame, otErro
     OT_UNUSED_VARIABLE(aInstance);
     OT_UNUSED_VARIABLE(aFrame);
     OT_UNUSED_VARIABLE(aError);
-    
+
     /* TODO */
 }
 
 void otPlatDiagAlarmCallback(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 

@@ -31,7 +31,7 @@
  *   This file implements the OpenThread platform abstraction for UART communication.
  *
  */
- 
+
 #include "platform-rt1060.h"
 
 otError otPlatUartEnable(void)
@@ -54,16 +54,15 @@ otError otPlatUartFlush(void)
 
 otError otPlatUartSend(const uint8_t *aBuf, uint16_t aBufLength)
 {
-
     OT_UNUSED_VARIABLE(aBuf);
     OT_UNUSED_VARIABLE(aBufLength);
-    
+
     /* TODO */
     return OT_ERROR_NONE;
 }
 
 void rt1060UartProcess()
-{    
+{
     /* TODO */
 }
 
@@ -81,6 +80,6 @@ void rt1060UartDeinit(void)
 void rt1060UartUpdate(otSysMainloopContext *aMainloop)
 {
     OT_UNUSED_VARIABLE(aMainloop);
-    
+
     /* TODO */
 }

@@ -43,7 +43,7 @@ OT_TOOL_WEAK void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const 
     OT_UNUSED_VARIABLE(aLogLevel);
     OT_UNUSED_VARIABLE(aLogRegion);
     OT_UNUSED_VARIABLE(aFormat);
-    
+
     /* TODO */
 }
 #endif

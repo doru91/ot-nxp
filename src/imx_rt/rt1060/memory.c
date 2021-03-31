@@ -31,7 +31,7 @@
 void *otPlatCAlloc(size_t aNum, size_t aSize)
 {
     /* TODO: add RT memory alloc function */
-    
+
     return NULL;
 }
 

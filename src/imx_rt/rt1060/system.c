@@ -45,7 +45,7 @@ void otSysInit(int argc, char *argv[])
     rt1060ApiLockInit();
     rt1060UartInit();
     rt1060RadioInit();
-    
+
     /* TODO: do we need other RT initializations */
 }
 
@@ -59,7 +59,7 @@ void otSysDeinit(void)
 void otSysMainloopInit(otSysMainloopContext *aMainloop)
 {
     OT_UNUSED_VARIABLE(aMainloop);
-    
+
     /* TODO: add aMainLoop specific initializations */
 }
 
@@ -78,16 +78,16 @@ void otSysMainloopUpdate(otInstance *aInstance, otSysMainloopContext *aMainloop)
 int otSysMainloopPoll(otSysMainloopContext *aMainloop)
 {
     OT_UNUSED_VARIABLE(aMainloop);
-    
-   /* TODO */
-   
-   return 0;
+
+    /* TODO */
+
+    return 0;
 }
 
 bool otSysPseudoResetWasRequested(void)
 {
     /* TODO */
-    
+
     return false;
 }
 

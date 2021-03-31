@@ -31,14 +31,14 @@
 void otPlatReset(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 
 otPlatResetReason otPlatGetResetReason(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 
@@ -46,7 +46,7 @@ void otPlatAssertFail(const char *aFilename, int aLineNumber)
 {
     OT_UNUSED_VARIABLE(aFilename);
     OT_UNUSED_VARIABLE(aLineNumber);
-    
+
     /* TODO */
 }
 

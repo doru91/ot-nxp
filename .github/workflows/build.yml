@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2021, The OpenThread Authors.
+#  Copyright (c) 2020, The OpenThread Authors.
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,4 +26,88 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 #
 
-#TODO: add CI rules for RT 1060
+name: Build
+
+on:
+  push:
+    branches-ignore:
+      - 'dependabot/**'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+
+  cancel-previous-runs:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "github.ref != 'refs/heads/main'"
+
+  pretty:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Bootstrap
+      run: |
+        sudo rm /etc/apt/sources.list.d/* && sudo apt-get update
+        sudo apt-get --no-install-recommends install -y clang-format-9 shellcheck
+        python3 -m pip install yapf==0.29.0
+        sudo snap install shfmt
+    - name: Check
+      run: |
+        script/make-pretty check
+  arm-gcc:
+    name: arm-gcc-${{ matrix.gcc_ver }}
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        include:
+          - gcc_ver: 4
+            gcc_download_url: https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
+            gcc_extract_dir: gcc-arm-none-eabi-4_9-2015q3
+          - gcc_ver: 5
+            gcc_download_url: https://developer.arm.com/-/media/Files/downloads/gnu-rm/5_4-2016q3/gcc-arm-none-eabi-5_4-2016q3-20160926-linux.tar.bz2
+            gcc_extract_dir: gcc-arm-none-eabi-5_4-2016q3
+          - gcc_ver: 6
+            gcc_download_url: https://developer.arm.com/-/media/Files/downloads/gnu-rm/6-2017q2/gcc-arm-none-eabi-6-2017-q2-update-linux.tar.bz2
+            gcc_extract_dir: gcc-arm-none-eabi-6-2017-q2-update
+          - gcc_ver: 7
+            gcc_download_url: https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+            gcc_extract_dir: gcc-arm-none-eabi-7-2018-q2-update
+          - gcc_ver: 9
+            gcc_download_url: https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2
+            gcc_extract_dir: gcc-arm-none-eabi-9-2019-q4-major
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Bootstrap
+      run: |
+        cd /tmp
+        sudo rm /etc/apt/sources.list.d/* && sudo apt-get update
+        sudo apt-get --no-install-recommends install -y lib32z1 ninja-build
+        wget ${{ matrix.gcc_download_url }} -O gcc-arm.tar.bz2
+        tar xjf gcc-arm.tar.bz2
+        # use the minimal required cmake version
+        sudo pip3 install --system -U cmake==3.10.3
+        cmake --version | grep 3.10.3
+        mkdir -p sdk 
+        cd sdk
+        wget https://mcuxpresso.nxp.com/eclipse/sdk/2.6.2/plugins/com.nxp.mcuxpresso.sdk.sdk_2.x_k32w061dk6_2.6.2.201911251446.jar
+        unzip com.nxp.mcuxpresso.sdk.sdk_2.x_k32w061dk6_2.6.2.201911251446.jar
+        cd sdks
+        unzip bea4b051e4c58da8d3bff93011a97d1d.zip
+        rm -rf bea4b051e4c58da8d3bff93011a97d1d.zip
+        export NXP_K32W061_SDK_ROOT=/tmp/sdk/sdks
+        export NXP_JN5189_SDK_ROOT=/tmp/sdk/sdks
+    - name: Build
+      run: |
+        export PATH=/tmp/${{ matrix.gcc_extract_dir }}/bin:$PATH
+        third_party/k32w061_sdk/mr2_fixes/patch_k32w061_mr2_sdk.sh
+        third_party/jn5189_sdk/mr2_fixes/patch_jn5189_mr2_sdk.sh
+        script/test

@@ -61,7 +61,7 @@ void HdlcInterface::Init(void)
 void HdlcInterface::Deinit(void)
 {
     DeinitUart();
-    
+
     /* TODO */
 }
 
@@ -126,7 +126,6 @@ otError HdlcInterface::Write(const uint8_t *aFrame, uint16_t aLength)
     /* TODO */
 
     return OT_ERROR_NONE;
-    
 }
 
 otError HdlcInterface::WaitForFrame(uint64_t aTimeoutUs)

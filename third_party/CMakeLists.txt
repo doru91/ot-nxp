@@ -29,3 +29,11 @@
 if(OT_BUILD_RT1060)
     add_subdirectory(rt1060_sdk)
 endif()
+
+if(OT_BUILD_K32W061)
+    add_subdirectory(k32w061_sdk)
+endif()
+
+if(OT_BUILD_JN5189)
+    add_subdirectory(jn5189_sdk)
+endif()

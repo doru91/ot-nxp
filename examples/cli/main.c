@@ -38,13 +38,12 @@
 //#include <freertos/FreeRTOS.h>
 //#include <freertos/task.h>
 
+#include <assert.h>
 #include <openthread/cli.h>
 #include <openthread/tasklet.h>
 #include <openthread/platform/toolchain.h>
-#include <assert.h>
 
 #include "platform-rt1060.h"
-
 
 static void run_cli(void *aContext)
 {
@@ -88,7 +87,6 @@ pseudo_reset:
         }
         else
         {
-
             abort();
         }
     }
@@ -97,16 +95,16 @@ pseudo_reset:
     otSysDeinit();
 
     goto pseudo_reset;
- 
+
     /* TODO */
-    //vTaskDelete(NULL);
+    // vTaskDelete(NULL);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     /* TODO: add required SDK files + CMakes rules */
-    //xTaskCreate(run_cli, "cli", 10 * 1024, NULL, 5, NULL);
-    
+    // xTaskCreate(run_cli, "cli", 10 * 1024, NULL, 5, NULL);
+
     /* add this call just for linking check */
     run_cli(NULL);
 }

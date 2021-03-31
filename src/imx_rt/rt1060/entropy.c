@@ -44,6 +44,6 @@ void rt1060RandomInit(void)
 otError otPlatEntropyGet(uint8_t *aOutput, uint16_t aOutputLength)
 {
     /* TODO */
-    
-    return OT_ERROR_NONE;   
+
+    return OT_ERROR_NONE;
 }

@@ -33,14 +33,14 @@
 void otPlatSettingsInit(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 
 void otPlatSettingsDeinit(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 
@@ -51,9 +51,9 @@ otError otPlatSettingsGet(otInstance *aInstance, uint16_t aKey, int aIndex, uint
     OT_UNUSED_VARIABLE(aIndex);
     OT_UNUSED_VARIABLE(aValue);
     OT_UNUSED_VARIABLE(aValueLength);
-    
+
     /* TODO */
-    
+
     return OT_ERROR_NOT_FOUND;
 }
 
@@ -63,9 +63,9 @@ otError otPlatSettingsSet(otInstance *aInstance, uint16_t aKey, const uint8_t *a
     OT_UNUSED_VARIABLE(aKey);
     OT_UNUSED_VARIABLE(aValue);
     OT_UNUSED_VARIABLE(aValueLength);
-    
+
     /* TODO */
-    
+
     return OT_ERROR_NONE;
 }
 
@@ -75,9 +75,9 @@ otError otPlatSettingsAdd(otInstance *aInstance, uint16_t aKey, const uint8_t *a
     OT_UNUSED_VARIABLE(aKey);
     OT_UNUSED_VARIABLE(aValue);
     OT_UNUSED_VARIABLE(aValueLength);
-    
+
     /* TODO */
-    
+
     return OT_ERROR_NONE;
 }
 
@@ -86,7 +86,7 @@ otError otPlatSettingsDelete(otInstance *aInstance, uint16_t aKey, int aIndex)
     OT_UNUSED_VARIABLE(aInstance);
     OT_UNUSED_VARIABLE(aKey);
     OT_UNUSED_VARIABLE(aIndex);
-    
+
     /* TODO */
     return OT_ERROR_NONE;
 }
@@ -94,14 +94,14 @@ otError otPlatSettingsDelete(otInstance *aInstance, uint16_t aKey, int aIndex)
 void otPlatFlashInit(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 }
 
 uint32_t otPlatFlashGetSwapSize(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    
+
     /* TODO */
 
     return 0;
@@ -111,7 +111,7 @@ void otPlatFlashErase(otInstance *aInstance, uint8_t aSwapIndex)
 {
     OT_UNUSED_VARIABLE(aInstance);
     OT_UNUSED_VARIABLE(aSwapIndex);
-    
+
     /* TODO */
 }
 
@@ -122,9 +122,9 @@ void otPlatFlashRead(otInstance *aInstance, uint8_t aSwapIndex, uint32_t aOffset
     OT_UNUSED_VARIABLE(aOffset);
     OT_UNUSED_VARIABLE(aData);
     OT_UNUSED_VARIABLE(aSize);
-    
+
     /* TODO */
-    
+
     return;
 }
 
@@ -135,8 +135,8 @@ void otPlatFlashWrite(otInstance *aInstance, uint8_t aSwapIndex, uint32_t aOffse
     OT_UNUSED_VARIABLE(aOffset);
     OT_UNUSED_VARIABLE(aData);
     OT_UNUSED_VARIABLE(aSize);
-    
+
     /* TODO */
-    
+
     return;
 }

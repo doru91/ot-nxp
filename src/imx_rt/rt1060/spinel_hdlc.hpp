@@ -29,8 +29,8 @@
 #ifndef OT_RT_SPINEL_HDLC_HPP_
 #define OT_RT_SPINEL_HDLC_HPP_
 
-#include "platform-rt1060.h"
 #include "openthread-core-rt1060-config.h"
+#include "platform-rt1060.h"
 
 #include "lib/spinel/spinel_interface.hpp"
 

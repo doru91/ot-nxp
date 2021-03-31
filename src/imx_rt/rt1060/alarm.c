@@ -38,7 +38,7 @@ static bool     sIsRunning = false;
 uint64_t otPlatTimeGet(void)
 {
     /* TODO */
-    
+
     return 0;
 }
 
@@ -49,7 +49,7 @@ void otPlatAlarmMilliStartAt(otInstance *aInstance, uint32_t aT0, uint32_t aDt)
     sAlarmT0   = aT0;
     sAlarmDt   = aDt;
     sIsRunning = true;
-    
+
     /* TODO */
 }
 
@@ -58,14 +58,14 @@ void otPlatAlarmMilliStop(otInstance *aInstance)
     OT_UNUSED_VARIABLE(aInstance);
 
     sIsRunning = false;
-    
+
     /* TODO */
 }
 
 uint32_t otPlatAlarmMilliGetNow(void)
 {
     /* TODO */
-    
+
     return 0;
 }
 
@@ -94,7 +94,7 @@ void rt1060AlarmProcess(otInstance *aInstance)
                 otPlatAlarmMilliFired(aInstance);
             }
         }
-    }   
+    }
     /* TODO */
 }
 
@@ -102,6 +102,6 @@ void rt1060AlarmProcess(otInstance *aInstance)
 void rt1060AlarmUpdate(otSysMainloopContext *aMainloop)
 {
     OT_UNUSED_VARIABLE(aMainloop);
-    
+
     /* TODO */
 }

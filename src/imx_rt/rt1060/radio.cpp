@@ -36,8 +36,8 @@
 
 #include <openthread/platform/radio.h>
 
-#include <lib/spinel/radio_spinel.hpp>
 #include "spinel_hdlc.hpp"
+#include <lib/spinel/radio_spinel.hpp>
 
 static ot::Spinel::RadioSpinel<ot::RT::HdlcInterface, otSysMainloopContext> sRadioSpinel;
 
@@ -362,17 +362,17 @@ otRadioState otPlatRadioGetState(otInstance *aInstance)
 void rt1060RadioInit()
 {
     sRadioSpinel.GetSpinelInterface().Init();
-    
+
     /* TODO: update the Init call */
-    //sRadioSpinel.Init(aResetRadio, aRestoreDataSetFromNcp);
+    // sRadioSpinel.Init(aResetRadio, aRestoreDataSetFromNcp);
 }
 
 void rt1060RadioProcess(otInstance *aInstance)
 {
     (void)aInstance;
-    
+
     /* TODO: update the Process call */
-    //sRadioSpinel.Process(*aMainloop);
+    // sRadioSpinel.Process(*aMainloop);
 }
 
 void rt1060RadioDeinit(void)

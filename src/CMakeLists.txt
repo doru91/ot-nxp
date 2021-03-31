@@ -29,3 +29,7 @@
 if(OT_BUILD_RT)
     add_subdirectory(imx_rt)
 endif()
+
+if(OT_BUILD_K32W061 OR OT_BUILD_JN5189)
+    add_subdirectory(k32w)
+endif()

@@ -36,6 +36,23 @@ if (OT_BUILD_RT)
         set(CORE_CONFIG_FILE "\"openthread-core-rt1060-config.h\"")
         set(CORE_CONFIG_CHECK "\"openthread-core-rt1060-config-check.h\"")
         set(PLATFORM rt1060)
+        set(CHIP imx_rt)
+    endif()
+elseif (OT_BUILD_K32W)
+    if (OT_BUILD_K32W061)
+        set(PLAT_LIB "openthread-k32w061")
+        set(CONFIG_FILE "\"openthread-core-k32w061-config.h\"")
+        set(CORE_CONFIG_FILE "\"openthread-core-k32w061-config.h\"")
+        set(CORE_CONFIG_CHECK "\"openthread-core-k32w061-config-check.h\"")
+        set(PLATFORM k32w061)
+        set(CHIP k32w)
+    elseif (OT_BUILD_JN5189)
+        set(PLAT_LIB "openthread-jn5189")
+        set(CONFIG_FILE "\"openthread-core-jn5189-config.h\"")
+        set(CORE_CONFIG_FILE "\"openthread-core-jn5189-config.h\"")
+        set(CORE_CONFIG_CHECK "\"openthread-core-jn5189-config-check.h\"")
+        set(PLATFORM jn5189)
+        set(CHIP k32w)
     endif()
 endif()
 
@@ -51,31 +68,35 @@ target_compile_definitions(ot-config INTERFACE
     OPENTHREAD_CONFIG_FILE=${CONFIG_FILE}
     OPENTHREAD_PROJECT_CORE_CONFIG_FILE=${CORE_CONFIG_FILE}
     OPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE=${CORE_CONFIG_CHECK}
-    OPENTHREAD_CONFIG_NCP_UART_ENABLE=1
+    OPENTHREAD_CONFIG_NCP_HDLC_ENABLE=1
 )
 
 target_include_directories(ot-config INTERFACE
-    ${PROJECT_SOURCE_DIR}/src/imx_rt/${PLATFORM}
+    ${PROJECT_SOURCE_DIR}/src/${CHIP}/${PLATFORM}
 )
 
 add_subdirectory(src)
 add_subdirectory(third_party)
 
-add_executable(ot-cli
-    ${PROJECT_SOURCE_DIR}/examples/cli/main.c
-)
+if (OT_BUILD_RT)
+    if (OT_BUILD_RT1060)
+	add_executable(ot-cli
+	    ${PROJECT_SOURCE_DIR}/examples/cli/main.c
+	)
 
-target_include_directories(ot-cli PRIVATE ${COMMON_INCLUDES})
+	target_include_directories(ot-cli PRIVATE ${COMMON_INCLUDES})
 
-target_link_libraries(ot-cli PRIVATE
-    openthread-cli-ftd
-    ${OT_PLATFORM_LIB}
-    openthread-ftd
-    ${OT_PLATFORM_LIB}
-    ${OT_MBEDTLS}
-    ot-config
-    -Wl,--start-group mbedcrypto openthread-${PLATFORM} -Wl,--end-group
-)
+	target_link_libraries(ot-cli PRIVATE
+	    openthread-cli-ftd
+	    ${OT_PLATFORM_LIB}
+	    openthread-ftd
+	    ${OT_PLATFORM_LIB}
+	    ${OT_MBEDTLS}
+	    ot-config
+	    -Wl,--start-group mbedcrypto openthread-${PLATFORM} -Wl,--end-group
+	)
 
-install(TARGETS ot-cli
-    DESTINATION bin)
+	install(TARGETS ot-cli
+	    DESTINATION bin)
+    endif()
+endif()
