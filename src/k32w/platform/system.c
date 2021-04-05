@@ -32,14 +32,14 @@
  *
  */
 #include "board.h"
-#include "clock_config.h"
 #include "pin_mux.h"
 #include "platform-k32w.h"
+#include "utils/uart.h"
+
+#include "MemManager.h"
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "MemManager.h"
 
 otInstance *          sInstance;
 OT_TOOL_WEAK uint32_t gInterruptDisableCount = 0;
@@ -60,12 +60,17 @@ void otSysInit(int argc, char *argv[])
 
         BOARD_BootClockRUN();
         BOARD_InitPins();
+        K32WRandomInit();
         MEM_Init();
     }
 
     K32WAlarmInit();
-    K32WRandomInit();
     K32WRadioInit();
+
+#if (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED) || \
+    (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_NCP_SPINEL)
+    K32WLogInit();
+#endif
 }
 
 bool otSysPseudoResetWasRequested(void)
@@ -110,7 +115,6 @@ OT_TOOL_WEAK void OSA_InterruptEnable(void)
         /* call core API to enable the global interrupt*/
     }
 }
-
 /*FUNCTION**********************************************************************
  *
  * Function Name : OSA_InterruptDisable
@@ -124,4 +128,17 @@ OT_TOOL_WEAK void OSA_InterruptDisable(void)
 
     /* update counter*/
     gInterruptDisableCount++;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : OSA_InstallIntHandler
+ * Description   : This function is used to install interrupt handler.
+ *
+ *END**************************************************************************/
+OT_TOOL_WEAK void OSA_InstallIntHandler(uint32_t IRQNumber, void (*handler)(void))
+{
+#ifdef ENABLE_RAM_VECTOR_TABLE
+    InstallIRQHandler((IRQn_Type)IRQNumber, (uint32_t)handler);
+#endif
 }

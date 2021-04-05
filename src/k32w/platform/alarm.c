@@ -32,10 +32,9 @@
  *
  */
 
-/* Openthread configuration */
-#include OPENTHREAD_PROJECT_CORE_CONFIG_FILE
-
+#include "MicroSpecific_arm_sdk2.h"
 #include "TMR_Adapter.h"
+#include "TimersManager.h"
 #include "fsl_clock.h"
 #include "fsl_ctimer.h"
 #include "fsl_device_registers.h"
@@ -43,6 +42,17 @@
 #include "openthread-system.h"
 #include <openthread/platform/alarm-milli.h>
 #include <openthread/platform/diag.h>
+
+#ifdef ALARM_LOG_ENABLED
+#include "dbg_logging.h"
+#define ALARM_LOG(fmt, ...)                                                    \
+    do                                                                         \
+    {                                                                          \
+        DbgLogAdd(__FUNCTION__, fmt, VA_NUM_ARGS(__VA_ARGS__), ##__VA_ARGS__); \
+    } while (0);
+#else
+#define ALARM_LOG(...)
+#endif
 
 #define ALARM_USE_CTIMER 0
 #define ALARM_USE_WTIMER 1
@@ -68,6 +78,17 @@ static ctimer_match_config_t sMatchConfig = {.enableCounterReset = false,
 static uint32_t sRemainingTicks;
 #endif
 
+/* Stub function for notifying application of wakeup */
+WEAK void App_NotifyWakeup(void);
+
+/**
+ * Stub function for notifying application of wakeup
+ *
+ */
+WEAK void App_NotifyWakeup(void)
+{
+}
+
 void K32WAlarmInit(void)
 {
 #if ALARM_USE_CTIMER
@@ -86,24 +107,19 @@ void K32WAlarmInit(void)
     NVIC_EnableIRQ(Timer0_IRQn);
 
 #else
-    RESET_PeripheralReset(kWKT_RST_SHIFT_RSTn);
+    // RESET_PeripheralReset(kWKT_RST_SHIFT_RSTn);
     WTIMER_Init();
 
     /* Get clk frequency and use prescale to lower it */
     refClk = CLOCK_GetFreq(kCLOCK_Xtal32k);
 
     /* Wake timer 0 is 41 bits long and is used for keepig the timestamp */
-    WTIMER_EnableInterrupts(WTIMER_TIMER0_ID);
+    Timestamp_Init();
+
     /* Wake timer 1 is 28 bits long and is used for alarm events, including waking up the MCU
        from sleep */
     WTIMER_EnableInterrupts(WTIMER_TIMER1_ID);
-
-    NVIC_SetPriority(WAKE_UP_TIMER0_IRQn, gStackTimer_IsrPrio_c >> (8 - __NVIC_PRIO_BITS));
     NVIC_SetPriority(WAKE_UP_TIMER1_IRQn, gStackTimer_IsrPrio_c >> (8 - __NVIC_PRIO_BITS));
-
-    /* Start wake timer 0 counter for timestamp - the counter counts down to 0 so a simple
-       substracion from TIMER0_MAX_COUNT_VALUE will give us the timestamp */
-    WTIMER_StartTimer(WTIMER_TIMER0_ID, TIMER0_MAX_COUNT_VALUE);
 #endif
 }
 
@@ -115,9 +131,9 @@ void K32WAlarmClean(void)
     CTIMER_DisableInterrupts(CTIMER0, kCTIMER_Match0InterruptEnable);
     NVIC_ClearPendingIRQ(Timer0_IRQn);
 #else
-    WTIMER_StopTimer(WTIMER_TIMER0_ID);
+    Timestamp_Deinit();
     WTIMER_StopTimer(WTIMER_TIMER1_ID);
-    WTIMER_DeInit();
+    ALARM_LOG("WTIMER_StopTimer");
 
     NVIC_DisableIRQ(WAKE_UP_TIMER0_IRQn);
     NVIC_ClearPendingIRQ(WAKE_UP_TIMER0_IRQn);
@@ -130,7 +146,9 @@ void K32WAlarmProcess(otInstance *aInstance)
 {
     if (sEventFired)
     {
-#if OPENTHREAD_CONFIG_DIAG_ENABLE
+        // sEventFired = false;
+
+#if OPENTHREAD_ENABLE_DIAG
 
         if (otPlatDiagModeGet())
         {
@@ -165,11 +183,13 @@ void otPlatAlarmMilliStartAt(otInstance *aInstance, uint32_t aT0, uint32_t aDt)
        so we arm the timer with the maximum value and re-arm with the remaing time once it fires */
     if (targetTicks < TIMER1_MAX_COUNT_VALUE)
     {
+        ALARM_LOG("WTIMER_StartTimer targetTicks = %d", targetTicks);
         WTIMER_StartTimer(WTIMER_TIMER1_ID, targetTicks);
         sRemainingTicks = 0;
     }
     else
     {
+        ALARM_LOG("WTIMER_StartTimer targetTicks = %d", TIMER1_MAX_COUNT_VALUE);
         WTIMER_StartTimer(WTIMER_TIMER1_ID, TIMER1_MAX_COUNT_VALUE);
         sRemainingTicks = targetTicks - TIMER1_MAX_COUNT_VALUE;
     }
@@ -189,6 +209,7 @@ void otPlatAlarmMilliStop(otInstance *aInstance)
 #else
     sRemainingTicks = 0;
     WTIMER_StopTimer(WTIMER_TIMER1_ID);
+    ALARM_LOG("WTIMER_StopTimer");
 #endif
 }
 
@@ -197,8 +218,7 @@ uint32_t otPlatAlarmMilliGetNow(void)
 #if ALARM_USE_CTIMER
     return CTIMER0->TC;
 #else
-    uint32_t timestamp  = WTIMER_ReadTimerSafe(WTIMER_TIMER0_ID);
-    uint64_t tempTstamp = (TIMER0_MAX_COUNT_VALUE - timestamp);
+    uint64_t tempTstamp = Timestamp_GetCounter32bit();
 
     tempTstamp *= TARGET_FREQ;
     tempTstamp /= refClk;
@@ -216,36 +236,28 @@ void CTIMER0_IRQHandler(void)
     uint32_t flags = CTIMER_GetStatusFlags(CTIMER0);
     CTIMER_ClearStatusFlags(CTIMER0, flags);
     sEventFired = true;
-
-#if USE_RTOS
     otSysEventSignalPending();
-#endif
 }
 #else
-void WAKE_UP_TIMER0_DriverIRQHandler()
-{
-    WTIMER_ClearStatusFlags(WTIMER_TIMER0_ID);
-    WTIMER_StartTimer(WTIMER_TIMER0_ID, TIMER0_MAX_COUNT_VALUE);
-
-#if USE_RTOS
-    otSysEventSignalPending();
-#endif
-}
 void WAKE_UP_TIMER1_DriverIRQHandler()
 {
-    WTIMER_ClearStatusFlags(WTIMER_TIMER1_ID);
+    ALARM_LOG("");
+    WTIMER_StopTimer(WTIMER_TIMER1_ID);
     if (sRemainingTicks)
     {
+        ALARM_LOG("WTIMER_StartTimer sRemainingTicks= %d", sRemainingTicks);
         WTIMER_StartTimer(WTIMER_TIMER1_ID, sRemainingTicks);
         sRemainingTicks = 0;
     }
     else
     {
         sEventFired = true;
+        App_NotifyWakeup();
     }
 
-#if USE_RTOS
-    otSysEventSignalPending();
-#endif
+    if (sEventFired)
+    {
+        otSysEventSignalPending();
+    }
 }
 #endif

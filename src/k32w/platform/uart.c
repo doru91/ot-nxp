@@ -32,6 +32,7 @@
  */
 
 /* NXP UART includes */
+#include "SerialManager.h"
 #include "board.h"
 #include "fsl_clock.h"
 #include "fsl_flexcomm.h"
@@ -39,22 +40,28 @@
 #include "fsl_usart.h"
 
 /* Openthread general includes */
-#include <utils/code_utils.h>
-#include <utils/uart.h>
-
-#if USE_RTOS
-#include "UART_Serial_Adapter.h"
 #include "openthread-system.h"
-#endif
+#include "platform-k32w.h"
+#include <utils/code_utils.h>
+#include "utils/uart.h"
 
 /* Defines */
-#define K32W_UART_RX_BUFFERS 256
+#ifndef gUartIsrPrio_c
+#define gUartIsrPrio_c (0x40)
+#endif
+
+#if ((UART_USE_DRIVER == 1) && (UART_USE_SERIAL_MGR == 1))
+#error "Serial Manager and Uart driver cannot be used at the same time. Please choose just one."
+#endif
+
+#define K32W_UART_RX_BUFFER_SIZE 256
 #define K32W_UART_BAUD_RATE 115200
 
+#if UART_USE_DRIVER
 /* Structures */
 typedef struct
 {
-    uint8_t buffer[K32W_UART_RX_BUFFERS];
+    uint8_t buffer[K32W_UART_RX_BUFFER_SIZE];
     uint8_t head;
     uint8_t tail;
     bool    isFull;
@@ -67,48 +74,82 @@ typedef enum
     UART_BUSY, /* TX busy. */
 } K32WUartStates;
 
+typedef void (*pSerialCallBack_t)(void *param);
+
 /* Private functions declaration */
+static void     K32WProcessReceive();
+static void     K32WProcessTransmit();
 static void     K32WResetRxRingBuffer(rxRingBuffer *aRxRing);
 static uint8_t *K32WPopRxRingBuffer(rxRingBuffer *aRxRing);
 static bool     K32WIsEmptyRxRingBuffer(rxRingBuffer *aRxRing);
 static void     K32WPushRxRingBuffer(rxRingBuffer *aRxRing, uint8_t aCharacter);
-static void     K32WProcessReceive(void);
-static void     K32WProcessTransmit(void);
 static void     USART0_IRQHandler(USART_Type *base, usart_handle_t *handle);
+#endif
+
+#if UART_USE_SERIAL_MGR
+static void       SerialMngr_TxCbApp(void *param);
+static void       SerialMngr_RxCbApp(void *param);
+OT_TOOL_WEAK void SerialProcess(void);
+#endif
 
 /* Private variables declaration */
-static bool           sIsUartInitialized; /* Is UART module initialized? */
-static bool           sIsTransmitDone;    /* Transmit done for the latest user-data buffer */
-static usart_handle_t sUartHandle;        /* Handle to the UART module */
-static rxRingBuffer   sUartRxRing;        /* Receive Ring Buffer */
+static bool sIsUartInitialized; /* Is UART module initialized? */
+
+#if UART_USE_DRIVER
+static bool           sIsTransmitDone; /* Transmit done for the latest user-data buffer */
+static usart_handle_t sUartHandleApp;  /* Handle to the UART module */
+static usart_handle_t sUartHandleLog;  /* Handle to the UART module */
+static rxRingBuffer   sUartRxRing0;    /* Receive Ring Buffer */
+#endif
+
+#if UART_USE_SERIAL_MGR
+uint8_t gShellSerMgrIf;
+uint8_t mOtSerMgrIfLog;
+
+OT_TOOL_WEAK serialInterfaceType_t ifType = gSerialMgrUsart_c;
+static uint8_t                     sRxBuffer[K32W_UART_RX_BUFFER_SIZE];
+
+OT_TOOL_WEAK uint8_t gOtAppUartInstance = 0;
+OT_TOOL_WEAK uint8_t gOtLogUartInstance = 1;
+#endif
 
 void K32WUartProcess(void)
 {
     if (sIsUartInitialized)
     {
+#if UART_USE_DRIVER
         K32WProcessTransmit();
         K32WProcessReceive();
+#endif
+
+#if UART_USE_SERIAL_MGR
+        SerialProcess();
+#endif
     }
 }
 
 otError otPlatUartEnable(void)
 {
-    status_t uartStatus;
-    otError  error = OT_ERROR_NONE;
-
-    usart_config_t config;
-    uint32_t       kPlatformClock = CLOCK_GetFreq(kCLOCK_Fro32M);
+    otError error = OT_ERROR_NONE;
 
     if (!sIsUartInitialized)
     {
-        /* attach clock for USART0 */
+#if UART_USE_DRIVER
+
+        status_t       uartStatus;
+        usart_config_t config;
+        uint32_t       kPlatformClock = CLOCK_GetFreq(kCLOCK_Fro32M);
+
+        /* attach clock for USART */
         CLOCK_AttachClk(kOSC32M_to_USART_CLK);
 
         /* reset FLEXCOMM0 for USART0 */
-        RESET_PeripheralReset(kFC0_RST_SHIFT_RSTn);
+        RESET_PeripheralReset(kUSART0_RST_SHIFT_RSTn);
 
-        memset(&sUartHandle, 0, sizeof(sUartHandle));
-        sUartHandle.txState = UART_IDLE;
+        memset(&sUartHandleApp, 0, sizeof(sUartHandleApp));
+        sUartHandleApp.txState = UART_IDLE;
+
+        BOARD_Init_UART_Pins(0);
 
         USART_GetDefaultConfig(&config);
         config.baudRate_Bps = K32W_UART_BAUD_RATE;
@@ -119,20 +160,32 @@ otError otPlatUartEnable(void)
         uartStatus = USART_Init(USART0, &config, kPlatformClock);
         otEXPECT_ACTION(uartStatus == kStatus_Success, error = OT_ERROR_INVALID_ARGS);
 
-        K32WResetRxRingBuffer(&sUartRxRing);
-
-        FLEXCOMM_SetIRQHandler(USART0, (flexcomm_irq_handler_t)USART0_IRQHandler, &sUartHandle);
+        K32WResetRxRingBuffer(&sUartRxRing0);
+        FLEXCOMM_SetIRQHandler(USART0, (flexcomm_irq_handler_t)USART0_IRQHandler, &sUartHandleApp);
 
         /* Enable interrupt in NVIC. */
-#if USE_RTOS
         NVIC_SetPriority(USART0_IRQn, gUartIsrPrio_c >> (8 - __NVIC_PRIO_BITS));
         NVIC_ClearPendingIRQ(USART0_IRQn);
-#endif
         EnableIRQ(USART0_IRQn);
 
-        /* Enable RX interrupt. */
+        /* Enable RX interrupt for app */
         USART_EnableInterrupts(USART0, kUSART_RxLevelInterruptEnable | kUSART_RxErrorInterruptEnable);
 
+#endif
+
+#if UART_USE_SERIAL_MGR
+        uint8_t status;
+
+        Serial_InitManager();
+
+        /* Register Serial Manager interface */
+        status = Serial_InitInterface(&gShellSerMgrIf, ifType, gOtAppUartInstance);
+        status += Serial_SetBaudRate(gShellSerMgrIf, K32W_UART_BAUD_RATE);
+
+        /* Install UART RX Callback handler */
+        status += Serial_SetRxCallBack(gShellSerMgrIf, SerialMngr_RxCbApp, NULL);
+        otEXPECT_ACTION(status == 0, error = OT_ERROR_FAILED);
+#endif
         sIsUartInitialized = true;
     }
 
@@ -143,7 +196,11 @@ exit:
 otError otPlatUartDisable(void)
 {
     sIsUartInitialized = false;
+
+#if UART_USE_DRIVER
     USART_Deinit(USART0);
+    USART_Deinit(USART1);
+#endif
 
     return OT_ERROR_NONE;
 }
@@ -152,13 +209,22 @@ otError otPlatUartSend(const uint8_t *aBuf, uint16_t aBufLength)
 {
     otError error = OT_ERROR_NONE;
 
-    otEXPECT_ACTION(!sUartHandle.txData, error = OT_ERROR_BUSY);
-    sUartHandle.txData        = (uint8_t *)aBuf;
-    sUartHandle.txDataSize    = aBufLength;
-    sUartHandle.txDataSizeAll = aBufLength;
+#if UART_USE_DRIVER
+
+    otEXPECT_ACTION(!sUartHandleApp.txData, error = OT_ERROR_BUSY);
+    sUartHandleApp.txData        = (uint8_t *)aBuf;
+    sUartHandleApp.txDataSize    = aBufLength;
+    sUartHandleApp.txDataSizeAll = aBufLength;
 
     /* Enable transmitter interrupt. */
     USART_EnableInterrupts(USART0, kUSART_TxLevelInterruptEnable);
+
+#endif
+
+#if UART_USE_SERIAL_MGR
+    uint8_t status = Serial_AsyncWrite(gShellSerMgrIf, (uint8_t *)aBuf, aBufLength, SerialMngr_TxCbApp, NULL);
+    otEXPECT_ACTION(status == 0, error = OT_ERROR_FAILED);
+#endif
 
 exit:
     return error;
@@ -169,6 +235,40 @@ otError otPlatUartFlush(void)
     return OT_ERROR_NOT_IMPLEMENTED;
 }
 
+#if (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED) || \
+    (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_NCP_SPINEL)
+void K32WLogInit()
+{
+#if UART_USE_DRIVER
+    usart_config_t config;
+    uint32_t       kPlatformClock = CLOCK_GetFreq(kCLOCK_Fro32M);
+
+    /* attach clock for USART */
+    CLOCK_AttachClk(kOSC32M_to_USART_CLK);
+
+    /* reset FLEXCOMM0 for USART1 */
+    RESET_PeripheralReset(kUSART1_RST_SHIFT_RSTn);
+
+    memset(&sUartHandleLog, 0, sizeof(sUartHandleLog));
+    sUartHandleLog.txState = UART_IDLE;
+
+    BOARD_Init_UART_Pins(1);
+
+    USART_GetDefaultConfig(&config);
+    config.enableRx = false;
+    USART_Init(USART1, &config, kPlatformClock);
+
+#endif
+
+#if UART_USE_SERIAL_MGR
+    Serial_InitManager();
+
+    Serial_InitInterface(&mOtSerMgrIfLog, gSerialMgrUsart_c, gOtLogUartInstance);
+    Serial_SetBaudRate(mOtSerMgrIfLog, K32W_UART_BAUD_RATE);
+#endif
+}
+#endif
+
 /**
  * Function used for blocking-write to the UART module.
  *
@@ -177,16 +277,27 @@ otError otPlatUartFlush(void)
  */
 void K32WWriteBlocking(const uint8_t *aBuf, uint32_t len)
 {
-    otEXPECT(sIsUartInitialized && sUartHandle.txState != UART_BUSY);
+#if UART_USE_DRIVER
+    otEXPECT(sUartHandleLog.txState != UART_BUSY);
 
-    sUartHandle.txState = UART_BUSY;
-    USART_WriteBlocking(USART0, aBuf, len);
-    sUartHandle.txState = UART_IDLE;
+    sUartHandleLog.txState = UART_BUSY;
+    USART_WriteBlocking(USART1, aBuf, len);
+    sUartHandleLog.txState = UART_IDLE;
 
 exit:
     return;
+#endif
+
+#if UART_USE_SERIAL_MGR
+    uint8_t status = Serial_SyncWrite(mOtSerMgrIfLog, (uint8_t *)aBuf, len);
+    otEXPECT(status == 0);
+exit:
+    return;
+
+#endif
 }
 
+#if UART_USE_DRIVER
 /**
  * Process TX characters in process context and call the upper layer call-backs.
  */
@@ -204,11 +315,11 @@ static void K32WProcessTransmit(void)
  */
 static void K32WProcessReceive(void)
 {
-    uint8_t  rx[K32W_UART_RX_BUFFERS];
+    uint8_t  rx[K32W_UART_RX_BUFFER_SIZE];
     uint16_t rxIndex = 0;
     uint8_t *pCharacter;
 
-    while ((pCharacter = K32WPopRxRingBuffer(&sUartRxRing)) != NULL)
+    while ((pCharacter = K32WPopRxRingBuffer(&sUartRxRing0)) != NULL)
     {
         rx[rxIndex] = *pCharacter;
         rxIndex++;
@@ -222,7 +333,7 @@ static void USART0_IRQHandler(USART_Type *base, usart_handle_t *handle)
     (void)handle;
 
     bool isReceiveEnabled = true;
-    bool isSendEnabled    = (sUartHandle.txDataSize != 0);
+    bool isSendEnabled    = (sUartHandleApp.txDataSize != 0);
 
     /* If RX overrun. */
     if (USART0->FIFOSTAT & USART_FIFOSTAT_RXERR_MASK)
@@ -241,14 +352,14 @@ static void USART0_IRQHandler(USART_Type *base, usart_handle_t *handle)
             volatile uint8_t rx_data = USART_ReadByte(USART0);
 
             {
-                K32WPushRxRingBuffer(&sUartRxRing, rx_data);
+                K32WPushRxRingBuffer(&sUartRxRing0, rx_data);
             }
         }
 
         /* There are times when the UART interrupt fires unnecessarily
          * having the TXNOTFULL and TXEMPY bits set. Disable this!
          */
-        if ((!sUartHandle.txDataSize) && (USART0->FIFOSTAT & USART_FIFOSTAT_TXNOTFULL_MASK) &&
+        if ((!sUartHandleApp.txDataSize) && (USART0->FIFOSTAT & USART_FIFOSTAT_TXNOTFULL_MASK) &&
             (USART0->FIFOSTAT & USART_FIFOSTAT_TXEMPTY_MASK))
         {
             USART0->FIFOINTENCLR = USART_FIFOINTENCLR_TXLVL_MASK;
@@ -257,23 +368,20 @@ static void USART0_IRQHandler(USART_Type *base, usart_handle_t *handle)
         /* TX: an interrupt is fired for each sent character */
         if (isSendEnabled && (USART0->FIFOSTAT & USART_FIFOSTAT_TXNOTFULL_MASK))
         {
-            USART0->FIFOWR = *sUartHandle.txData;
-            sUartHandle.txDataSize--;
-            sUartHandle.txData++;
-            isSendEnabled = (sUartHandle.txDataSize != 0);
+            USART0->FIFOWR = *sUartHandleApp.txData;
+            sUartHandleApp.txDataSize--;
+            sUartHandleApp.txData++;
+            isSendEnabled = (sUartHandleApp.txDataSize != 0);
 
             if (!isSendEnabled)
             {
-                USART0->FIFOINTENCLR = USART_FIFOINTENCLR_TXLVL_MASK;
-                sUartHandle.txData   = NULL;
-                sIsTransmitDone      = true;
+                USART0->FIFOINTENCLR  = USART_FIFOINTENCLR_TXLVL_MASK;
+                sUartHandleApp.txData = NULL;
+                sIsTransmitDone       = true;
             }
         }
-
-#if USE_RTOS
-        otSysEventSignalPending();
-#endif
     }
+    otSysEventSignalPending();
 }
 
 /**
@@ -289,10 +397,10 @@ static void K32WPushRxRingBuffer(rxRingBuffer *aRxRing, uint8_t aCharacter)
 
     if (aRxRing->isFull)
     {
-        aRxRing->tail = (aRxRing->tail + 1) % K32W_UART_RX_BUFFERS;
+        aRxRing->tail = (aRxRing->tail + 1) % K32W_UART_RX_BUFFER_SIZE;
     }
 
-    aRxRing->head   = (aRxRing->head + 1) % K32W_UART_RX_BUFFERS;
+    aRxRing->head   = (aRxRing->head + 1) % K32W_UART_RX_BUFFER_SIZE;
     aRxRing->isFull = (aRxRing->head == aRxRing->tail);
 }
 
@@ -316,7 +424,7 @@ static uint8_t *K32WPopRxRingBuffer(rxRingBuffer *aRxRing)
     {
         pCharacter      = &(aRxRing->buffer[aRxRing->tail]);
         aRxRing->isFull = false;
-        aRxRing->tail   = (aRxRing->tail + 1) % K32W_UART_RX_BUFFERS;
+        aRxRing->tail   = (aRxRing->tail + 1) % K32W_UART_RX_BUFFER_SIZE;
     }
     EnableIRQ(USART0_IRQn);
 
@@ -347,6 +455,29 @@ static void K32WResetRxRingBuffer(rxRingBuffer *aRxRing)
     aRxRing->tail   = 0;
     aRxRing->isFull = false;
 }
+#endif /* UART_USE_DRIVER */
+
+#if UART_USE_SERIAL_MGR
+static void SerialMngr_TxCbApp(void *param)
+{
+    OT_UNUSED_VARIABLE(param);
+    otPlatUartSendDone();
+}
+
+static void SerialMngr_RxCbApp(void *param)
+{
+    uint16_t oneReadBytes = 0;
+    OT_UNUSED_VARIABLE(param);
+
+    Serial_Read(gShellSerMgrIf, sRxBuffer, K32W_UART_RX_BUFFER_SIZE, &oneReadBytes);
+    otPlatUartReceived(sRxBuffer, oneReadBytes);
+}
+
+OT_TOOL_WEAK void SerialProcess(void)
+{
+    SerialManagerTask();
+}
+#endif /* UART_USE_SERIAL_MGR */
 
 /**
  * The UART driver weak functions definition.

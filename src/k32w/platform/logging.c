@@ -35,6 +35,7 @@
 #include "platform-k32w.h"
 #include <openthread-core-config.h>
 #include <utils/code_utils.h>
+#include <utils/uart.h>
 #include <openthread/config.h>
 #include <openthread/platform/logging.h>
 #include <openthread/platform/toolchain.h>
@@ -42,7 +43,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#if (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED)
+#if (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED) || \
+    (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_NCP_SPINEL)
 
 /* defines */
 #define TX_BUFFER_SIZE 256 /* Length of the send buffer */

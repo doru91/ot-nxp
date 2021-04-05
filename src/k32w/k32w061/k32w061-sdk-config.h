@@ -45,9 +45,24 @@
 #define USE_RTOS 0
 #endif
 
-#ifndef PoolsDetails_c
-#define PoolsDetails_c \
-    _block_size_ 512 _number_of_blocks_ 2 _pool_id_(0) _eol_ _block_size_ 768 _number_of_blocks_ 1 _pool_id_(0) _eol_
+#ifndef USE_SDK_OSA
+#define USE_SDK_OSA 0
 #endif
+
+#ifndef gSerialManagerMaxInterfaces_c
+#define gSerialManagerMaxInterfaces_c 2
+#endif
+
+#ifndef SUPPORT_FOR_15_4
+#define SUPPORT_FOR_15_4 1
+#endif
+
+#ifndef SDK_DEBUGCONSOLE
+#define SDK_DEBUGCONSOLE 0
+#endif
+
+#define PoolsDetails_c                                 \
+    _block_size_ 512 _number_of_blocks_ 2 _pool_id_(0) \
+        padding _eol_ _block_size_ 768 _number_of_blocks_ 1 _pool_id_(0) padding _eol_
 
 #endif // K32W061_SDK_CONFIG_H

@@ -31,6 +31,7 @@ list(APPEND OT_PLATFORM_DEFINES
     "CPU_JN518X_REV=2"
     "JENNIC_CHIP_FAMILY_JN518x"
     "JENNIC_CHIP_FAMILY_NAME=_JN518x"
+    "USE_SDK_OSA=0"
     "SDK_DEBUGCONSOLE=0"  
 )
 
@@ -40,7 +41,6 @@ list(APPEND OT_PUBLIC_DEFINES
     -DCPU_JN518X_REV=2
     -DJENNIC_CHIP_FAMILY_JN518x
     -DJENNIC_CHIP_FAMILY_NAME=_JN518x
-    -DSDK_DEBUGCONSOLE=0
     -Wno-unused-parameter
     -Wno-expansion-to-defined
 )
@@ -51,25 +51,26 @@ list(APPEND OT_PUBLIC_INCLUDES
         "${PROJECT_SOURCE_DIR}/openthread/third_party/mbedtls/repo/"
         "${PROJECT_SOURCE_DIR}/openthread/third_party/mbedtls/repo/include/"
         "$ENV{NXP_K32W061_SDK_ROOT}"
+        "$ENV{NXP_K32W061_SDK_ROOT}/boards/k32w061dk6/wireless_examples/openthread/enablement"
+        "$ENV{NXP_K32W061_SDK_ROOT}/CMSIS/Include/"
+        "$ENV{NXP_K32W061_SDK_ROOT}/components/serial_manager/"
         "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/mbedtls/port/ksdk/"
         "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/drivers/"
         "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/utilities/"
         "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/utilities/debug-console/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/utilities/str/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/components/serial_manager/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/drivers/components/uart/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/CMSIS/Include/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/TimersManager/Source/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/Common/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/DK6/Build/Include"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/DK6"
         "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/utilities/debug_console/"
-        "$ENV{NXP_K32W061_SDK_ROOT}/boards/k32w061dk6/wireless_examples/openthread/enablement"
-        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/MemManager/Interface"
+        "$ENV{NXP_K32W061_SDK_ROOT}/devices/K32W061/utilities/str/"
+        "$ENV{NXP_K32W061_SDK_ROOT}/drivers/components/uart/"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/mbedtls/port/ksdk/"
         "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/ieee-802.15.4/uMac/Include"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/Common/"
         "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/Lists"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/MemManager/Interface"
         "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/PDM/Include"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/SerialManager/Interface"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/TimersManager/Source/"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/DK6"
+        "$ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/DK6/Build/Include"
 )
 
 set(K32W_COMM_SOURCES
@@ -89,9 +90,9 @@ set(K32W_COMM_SOURCES
 )
 
 set(K32W_LIBS
-    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/ieee-802.15.4/lib/libMiniMac.a   
-    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/lib/libRadio.a    
-    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/PDM/Library/libPDM.a
+    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/ieee-802.15.4/lib/libMiniMac.a
+    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/PDM/Library/libPDM.a   
+    $ENV{NXP_K32W061_SDK_ROOT}/middleware/wireless/framework/XCVR/lib/libRadio.a
 )
 
 set(K32W_INCLUDES

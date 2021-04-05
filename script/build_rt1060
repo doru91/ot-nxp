@@ -46,6 +46,7 @@ build()
     mkdir -p "${builddir}"
     cd "${builddir}"
 
+    # shellcheck disable=SC2068
     cmake -GNinja -DOT_APP_NCP=OFF -DOT_BUILD_RT=ON -DOT_BUILD_RT1060=ON -DOT_COMPILE_WARNING_AS_ERROR=ON $@ "${OT_SRCDIR}"
 
     if [[ -n ${OT_CMAKE_NINJA_TARGET[*]} ]]; then
@@ -68,7 +69,7 @@ main()
     #     else if .gitignore is found
     #         then NXP_RT1060_SDK_ROOT points to a cloned repository
 
-    if [ -z $NXP_RT1060_SDK_ROOT ]; then
+    if [ -z "$NXP_RT1060_SDK_ROOT" ]; then
         NXP_RT1060_SDK_ROOT="../../../"
     fi
 
@@ -87,7 +88,7 @@ main()
 
     options+=("$@")
 
-    options+=" -DSDK_RELEASE=$SDK_RELEASE"
+    options+=(" -DSDK_RELEASE=$SDK_RELEASE")
 
     build "${options[@]}"
 }

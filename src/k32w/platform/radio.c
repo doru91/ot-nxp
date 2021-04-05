@@ -44,15 +44,22 @@
 #include "radio.h"
 
 /* Openthread general */
+#include "openthread-system.h"
 #include <utils/code_utils.h>
 #include <openthread/platform/alarm-milli.h>
 #include <openthread/platform/diag.h>
 #include <openthread/platform/radio.h>
 
-#if USE_RTOS
-#include "openthread-system.h"
+#if defined RADIO_LOG_ENABLED
+#include "dbg_logging.h"
+#define RADIO_LOG(fmt, ...)                                                    \
+    do                                                                         \
+    {                                                                          \
+        DbgLogAdd(__FUNCTION__, fmt, VA_NUM_ARGS(__VA_ARGS__), ##__VA_ARGS__); \
+    } while (0);
+#else
+#define RADIO_LOG(...)
 #endif
-
 extern void BOARD_LedDongleToggle(void);
 
 /* Defines */
@@ -174,7 +181,7 @@ static tsRxFrameFormat *K32WPopRxRingBuffer(rxRingBuffer *aRxRing);
 static bool             K32WIsEmptyRxRingBuffer(rxRingBuffer *aRxRing);
 static tsRxFrameFormat *K32WGetFrame(tsRxFrameFormat *aRxFrame, uint8_t *aRxFrameIndex);
 static void             K32WEnableReceive(bool_t isNewFrameNeeded);
-static void             K32WRestartRx(void);
+static void             K32WRestartRx();
 
 /* Private variables declaration */
 static otRadioState sState = OT_RADIO_STATE_DISABLED;
@@ -203,18 +210,22 @@ static teRxOption       sRxOpt = E_MMAC_RX_START_NOW | /* RX Options */
                            E_MMAC_RX_ALIGN_NORMAL | E_MMAC_RX_USE_AUTO_ACK | E_MMAC_RX_NO_MALFORMED |
                            E_MMAC_RX_NO_FCS_ERROR | E_MMAC_RX_ADDRESS_MATCH;
 
-tsRxFrameFormat         sTxMacFrame;                      /* TX Frame */
-static tsRxFrameFormat  sRxAckFrame;                      /* Frame used for keeping the ACK */
-static otRadioFrame     sRxOtFrame;                       /* Used for TX/RX frame conversion */
-static uint8            sRxData[OT_RADIO_FRAME_MAX_SIZE]; /* mPsdu buffer for sRxOtFrame */
-static tsRxFrameFormat *pLastRxFrame;
+tsRxFrameFormat        sTxMacFrame;                      /* TX Frame */
+static tsRxFrameFormat sRxAckFrame;                      /* Frame used for keeping the ACK */
+static otRadioFrame    sRxOtFrame;                       /* Used for TX/RX frame conversion */
+static uint8           sRxData[OT_RADIO_FRAME_MAX_SIZE]; /* mPsdu buffer for sRxOtFrame */
 
-static bool         sRadioInitForLp    = FALSE;
-static bool         sPromiscuousEnable = FALSE;
-static bool         sTxDone;                          /* TRUE if a TX frame was sent into the air */
-static otError      sTxStatus;                        /* Status of the latest TX operation */
-static otRadioFrame sTxOtFrame;                       /* OT TX Frame to be send */
-static uint8_t      sTxData[OT_RADIO_FRAME_MAX_SIZE]; /* mPsdu buffer for sTxOtFrame */
+static bool_t           sRadioInitForLp    = FALSE;
+static bool_t           sPromiscuousEnable = FALSE;
+static bool_t           sTxDone;                          /* TRUE if a TX frame was sent into the air */
+static otError          sTxStatus;                        /* Status of the latest TX operation */
+static otRadioFrame     sTxOtFrame;                       /* OT TX Frame to be send */
+static uint8_t          sTxData[OT_RADIO_FRAME_MAX_SIZE]; /* mPsdu buffer for sTxOtFrame */
+static tsRxFrameFormat *pLastRxFrame       = NULL;
+static uint8_t          sTxMacRetries      = MAC_TX_ATTEMPTS;
+static uint8_t          sTxMacCsmaBackoffs = MAC_TX_CSMA_MAX_BACKOFFS;
+
+static bool_t sAllowDeviceToSleep = FALSE;
 
 /* Stub functions for controlling low power mode */
 WEAK void App_AllowDeviceToSleep();
@@ -331,7 +342,7 @@ otError otPlatRadioEnable(otInstance *aInstance)
     vMMAC_EnableInterrupts(K32WISR);
     vMMAC_ConfigureInterruptSources(E_MMAC_INT_TX_COMPLETE | E_MMAC_INT_RX_HEADER | E_MMAC_INT_RX_COMPLETE);
     vMMAC_ConfigureRadio();
-    vMMAC_SetTxParameters(MAC_TX_ATTEMPTS, MAC_TX_CSMA_MIN_BE, MAC_TX_CSMA_MAX_BE, MAC_TX_CSMA_MAX_BACKOFFS);
+    vMMAC_SetTxParameters(sTxMacRetries, MAC_TX_CSMA_MIN_BE, MAC_TX_CSMA_MAX_BE, sTxMacCsmaBackoffs);
 
     if (sRadioInitForLp)
     {
@@ -388,7 +399,14 @@ otError otPlatRadioSleep(otInstance *aInstance)
 
     sState = OT_RADIO_STATE_SLEEP;
     vMMAC_RadioToOffAndWait();
-    App_AllowDeviceToSleep();
+
+    /* prevent multiple calls to the allow to sleep callback */
+    if (FALSE == sAllowDeviceToSleep)
+    {
+        App_AllowDeviceToSleep();
+        sAllowDeviceToSleep = TRUE;
+        RADIO_LOG("App_AllowDeviceToSleep");
+    }
 
 exit:
     return status;
@@ -405,7 +423,13 @@ otError otPlatRadioReceive(otInstance *aInstance, uint8_t aChannel)
     otEXPECT_ACTION(((sState != OT_RADIO_STATE_TRANSMIT) && (sState != OT_RADIO_STATE_DISABLED)),
                     error = OT_ERROR_INVALID_STATE);
 
-    App_DisallowDeviceToSleep();
+    /* prevent multiple calls to the allow to sleep callback */
+    if (TRUE == sAllowDeviceToSleep)
+    {
+        App_DisallowDeviceToSleep();
+        sAllowDeviceToSleep = FALSE;
+        RADIO_LOG("App_DisallowDeviceToSleep");
+    }
 
     /* Check if the channel needs to be changed */
     if (sChannel != aChannel)
@@ -429,6 +453,7 @@ otError otPlatRadioReceive(otInstance *aInstance, uint8_t aChannel)
          * in the middle of a receive operation */
         isNewFrameNeeded = FALSE;
     }
+
     K32WEnableReceive(isNewFrameNeeded);
 
 exit:
@@ -572,6 +597,14 @@ otError otPlatRadioTransmit(otInstance *aInstance, otRadioFrame *aFrame)
     }
 
     K32WFrameConversion(&sTxMacFrame, aFrame, otToMacFrame);
+
+    if (sTxMacRetries != aFrame->mInfo.mTxInfo.mMaxFrameRetries ||
+        sTxMacCsmaBackoffs != aFrame->mInfo.mTxInfo.mMaxCsmaBackoffs)
+    {
+        sTxMacRetries      = aFrame->mInfo.mTxInfo.mMaxFrameRetries;
+        sTxMacCsmaBackoffs = aFrame->mInfo.mTxInfo.mMaxCsmaBackoffs;
+        vMMAC_SetTxParameters(sTxMacRetries, MAC_TX_CSMA_MIN_BE, MAC_TX_CSMA_MAX_BE, sTxMacCsmaBackoffs);
+    }
 
     /* stop rx is handled by uMac tx function */
     vMMAC_StartMacTransmit(&sTxMacFrame.sFrameBody, eOptions);
@@ -826,10 +859,6 @@ static void K32WISR(uint32_t u32IntBitmap)
     default:
         break;
     }
-
-#if USE_RTOS
-    otSysEventSignalPending();
-#endif
 }
 /**
  * Process the MAC Header of the latest received packet
@@ -1281,6 +1310,7 @@ static void K32WEnableReceive(bool_t isNewFrameNeeded)
             pLastRxFrame = pRxFrame;
             vMMAC_StartMacReceive(&pRxFrame->sFrameBody, sRxOpt);
         }
+        otSysEventSignalPending();
     }
     else
     {
@@ -1292,7 +1322,7 @@ static void K32WEnableReceive(bool_t isNewFrameNeeded)
  * Function used for MMAC-RX Restart
  *
  */
-static void K32WRestartRx(void)
+static void K32WRestartRx()
 {
     vMMAC_SetRxProm(((uint32)sRxOpt >> 8) & ALL_FFs_BYTE);
     vMMAC_RxCtlUpdate(((uint32)sRxOpt) & ALL_FFs_BYTE);

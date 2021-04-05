@@ -31,6 +31,8 @@
  *   GCC linker script for K32W061.
  */
 
+OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
+
 /*
  * stack size for the boot rom during warm boot and application
  * 256 is sufficient (pwrm_test) but keep it large to 1024
@@ -81,7 +83,9 @@ INT_STORAGE_SIZE                               = INT_STORAGE_END - INT_STORAGE_S
 FREESCALE_PROD_DATA_BASE_ADDR                  = m_fsl_prodInfo_start;
 INT_STORAGE_SECTOR_SIZE                        = m_sector_size;
 m_app_size                                     = 0x7A120;
-
+__ram_vector_table__                           = 1;
+vector_table_size                              = 0x120;
+M_VECTOR_RAM_SIZE                              = DEFINED(__ram_vector_table__) ? vector_table_size : 0x0;
 ENTRY(ResetISR)
 
 SECTIONS
@@ -94,6 +98,8 @@ SECTIONS
 
         FILL(0xff)
         __vectors_start__ = ABSOLUTE(.) ;
+        __VECTOR_TABLE = .;
+        __Vectors = .;
         KEEP(*(.isr_vector))
         /* Global Section Table */
         . = ALIGN(4) ;
@@ -158,7 +164,26 @@ SECTIONS
 
        *(.after_vectors*)
        *(.text*)
-        *(.rodata .rodata.* .constdata .constdata.*)
+
+        KEEP(*(.init))
+        KEEP(*(.fini))
+
+        /* .ctors */
+       *crtbegin.o(.ctors)
+       *crtbegin?.o(.ctors)
+       *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+       *(SORT(.ctors.*))
+       *(.ctors)
+
+       /* .dtors */
+       *crtbegin.o(.dtors)
+       *crtbegin?.o(.dtors)
+       *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+       *(SORT(.dtors.*))
+       *(.dtors)
+
+       *(.rodata .rodata.* .constdata .constdata.*) 
+        
         . = ALIGN(4);
     } > Flash640
     /*
@@ -197,6 +222,17 @@ SECTIONS
         PROVIDE(__end_data_RAM2 = .) ;
      } > RAM1 AT>Flash640
 
+    .interrupts_ram : ALIGN(0x200)
+    {
+        . = ALIGN(4);
+        __VECTOR_RAM__ = .;
+        __interrupts_ram_start__ = .;   /* Create a global symbol at data start */
+        *(.m_interrupts_ram)            /* This is a user defined section */
+        . += M_VECTOR_RAM_SIZE;
+        . = ALIGN(4);
+        __interrupts_ram_end__ = .;     /* Define a global symbol at data end */
+    } > RAM0
+
     /* MAIN DATA SECTION */
     .uninit_RESERVED : ALIGN(4)
     {
@@ -213,10 +249,36 @@ SECTIONS
        *(vtable)
        *(.ramfunc*)
        *(.data*)
+
+        . = ALIGN(4);
+        /* preinit data */
+        PROVIDE_HIDDEN (__preinit_array_start = .);
+        KEEP(*(.preinit_array))
+        PROVIDE_HIDDEN (__preinit_array_end = .);
+
+        . = ALIGN(4);
+        /* init data */
+        __init_array_start = . ;
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        __init_array_end = . ;
+
+        . = ALIGN(4);
+        /* finit data */
+        PROVIDE_HIDDEN (__fini_array_start = .);
+        KEEP(*(SORT(.fini_array.*)))
+        KEEP(*(.fini_array))
+        PROVIDE_HIDDEN (__fini_array_end = .);
+
+        KEEP(*(.jcr*))
+
        . = ALIGN(4) ;
+       
        _edata = . ;
     } > RAM0 AT>Flash640
 
+    __VECTOR_RAM = __VECTOR_RAM__;
+    __RAM_VECTOR_TABLE_SIZE_BYTES = DEFINED(__ram_vector_table__) ? (__interrupts_ram_end__ - __interrupts_ram_start__) : 0x0;
 
     /* BSS section for RAM1 */
     .bss_RAM2 (NOLOAD) : ALIGN(4)

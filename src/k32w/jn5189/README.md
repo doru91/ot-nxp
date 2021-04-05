@@ -36,10 +36,10 @@ $ pip3 install pycryptodome
 
 [mcuxpresso ide]: https://www.nxp.com/support/developer-resources/software-development-tools/mcuxpresso-software-and-tools/mcuxpresso-integrated-development-environment-ide:MCUXpresso-IDE
 
-- Download [JN5189 SDK 2.6.2](https://mcuxpresso.nxp.com/).
+- Download [JN5189 SDK 2.6.3](https://mcuxpresso.nxp.com/).
   Creating an nxp.com account is required before being able to download the
   SDK. Once the account is created, login and follow the steps for downloading
-  SDK_2.6.2_JN5189DK6. The SDK Builder UI selection should be similar with
+  SDK_2.6.3_JN5189DK6. The SDK Builder UI selection should be similar with
   the one from the image below.
   ![MCUXpresso SDK Download](../../../doc/img/k32w/sdk_builder_jn5189.JPG)
 
@@ -48,7 +48,7 @@ $ pip3 install pycryptodome
 ```bash
 $ cd <path-to-ot-nxp>
 $ export NXP_JN5189_SDK_ROOT=/path/to/previously/downloaded/SDK
-$ third_party/jn5189_sdk/mr2_fixes/patch_jn5189_mr2_sdk.sh
+$ third_party/jn5189_sdk/mr3_fixes/patch_jn5189_mr3_sdk.sh
 $ ./script/build_jn5189
 ```
 

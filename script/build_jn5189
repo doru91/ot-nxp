@@ -46,6 +46,7 @@ build()
     mkdir -p "${builddir}"
     cd "${builddir}"
 
+    # shellcheck disable=SC2068
     cmake -GNinja -DOT_BUILD_K32W=ON -DOT_BUILD_JN5189=ON -DOT_COMPILE_WARNING_AS_ERROR=ON -DOT_MBEDTLS_CONFIG_FILE=\"mbedtls-config.h\" $@ "${OT_SRCDIR}"
 
     if [[ -n ${OT_CMAKE_NINJA_TARGET[*]} ]]; then
@@ -54,10 +55,8 @@ build()
         ninja
     fi
 
-    if [ $? -eq 0 ]; then
-        $NXP_JN5189_SDK_ROOT/tools/imagetool/sign_images.sh openthread/examples/apps/cli/
-        $NXP_JN5189_SDK_ROOT/tools/imagetool/sign_images.sh openthread/examples/apps/ncp/
-    fi
+    "$NXP_JN5189_SDK_ROOT"/tools/imagetool/sign_images.sh openthread/examples/apps/cli/
+    "$NXP_JN5189_SDK_ROOT"/tools/imagetool/sign_images.sh openthread/examples/apps/ncp/
 
     cd "${OT_SRCDIR}"
 }
@@ -73,7 +72,7 @@ main()
     #     else if .gitignore is found
     #         then NXP_JN5189_SDK_ROOT points to a cloned repository
 
-    if [ -z $NXP_JN5189_SDK_ROOT ]; then
+    if [ -z "$NXP_JN5189_SDK_ROOT" ]; then
         NXP_JN5189_SDK_ROOT="../../../"
     fi
 
@@ -92,7 +91,7 @@ main()
 
     options+=("$@")
 
-    options+=" -DSDK_RELEASE=$SDK_RELEASE"
+    options+=(" -DSDK_RELEASE=$SDK_RELEASE")
 
     build "${options[@]}"
 }

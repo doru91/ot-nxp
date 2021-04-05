@@ -31,15 +31,13 @@
  *   This file implements the OpenThread platform abstraction for the diagnostics.
  *
  */
-/* Openthread configuration */
-#include OPENTHREAD_PROJECT_CORE_CONFIG_FILE
 
 #include <stdio.h>
 #include <openthread/config.h>
 #include <openthread/platform/alarm-milli.h>
 #include <openthread/platform/radio.h>
 
-#if OPENTHREAD_CONFIG_DIAG_ENABLE
+#if OPENTHREAD_ENABLE_DIAG
 
 /**
  * Diagnostics mode variables.

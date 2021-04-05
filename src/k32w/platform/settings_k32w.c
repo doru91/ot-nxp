@@ -43,11 +43,10 @@
 #include <openthread/instance.h>
 #include <openthread/platform/settings.h>
 
-#include <string.h>
 #include "utils/code_utils.h"
 
-#include "EmbeddedTypes.h"
 #include "PDM.h"
+#include <string.h>
 
 #define pdmBufferSize 512
 #define NVM_START_ID 0x4F00

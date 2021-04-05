@@ -42,6 +42,9 @@
 
 #include <openthread/instance.h>
 
+#define UART_USE_DRIVER 0
+#define UART_USE_SERIAL_MGR 1
+
 /**
  * This function initializes the alarm service used by OpenThread.
  *
@@ -81,6 +84,18 @@ void K32WRandomInit(void);
  *
  */
 void K32WUartProcess(void);
+
+/**
+ * This function initializes the platform defined logging.
+ *
+ */
+void K32WLogInit();
+
+/**
+ * This function performs UART driver processing.
+ *
+ */
+void K32WLogInit();
 
 /**
  * This function performs UART Blocking Send

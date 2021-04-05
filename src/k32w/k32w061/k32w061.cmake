@@ -28,11 +28,6 @@
 list(APPEND OT_PLATFORM_DEFINES
     "OPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE=\"openthread-core-k32w061-config-check.h\""
 )
-    
-list(APPEND OT_PUBLIC_DEFINES
-    -imacros "${PROJECT_SOURCE_DIR}/src/k32w/k32w061/k32w061-sdk-config.h"
-    -I${PROJECT_SOURCE_DIR}/src/k32w/k32w061/
-)
 
 set(OT_PLATFORM_DEFINES ${OT_PLATFORM_DEFINES} PARENT_SCOPE)
 
@@ -45,8 +40,6 @@ set(OT_PUBLIC_INCLUDES ${OT_PUBLIC_INCLUDES} PARENT_SCOPE)
 
 set(COMM_FLAGS
     -I${PROJECT_SOURCE_DIR}/examples/platforms/k32w/k32w061/
-    -Wno-unused-parameter
-    -Wno-expansion-to-defined
 )
 if(OT_CFLAGS MATCHES "-pedantic-errors")
     string(REPLACE "-pedantic-errors" "" OT_CFLAGS "${OT_CFLAGS}")
